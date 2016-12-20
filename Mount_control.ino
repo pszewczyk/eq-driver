@@ -14,8 +14,8 @@ struct motor_ctx RA_motor = {
   .pins = {3,4,7,8},
   .en = {5,6},
   .dir = 1,
-  .step_time = 1E6,
-  .ticks_left = 1E6,
+  .step_time = 1E4,
+  .ticks_left = 0,
 };
 
 struct motor_ctx DEC_motor = {
@@ -24,8 +24,8 @@ struct motor_ctx DEC_motor = {
   .pins = {3,4,7,8},
   .en = {5,6},
   .dir = 1,
-  .step_time = 3E6,
-  .ticks_left = 3E6,
+  .step_time = 1E6,
+  .ticks_left = 0,
 };
 
 void full_step_isr()
@@ -49,7 +49,7 @@ void main_isr()
 
   if (RA_motor.ticks_left == 0) {
     RA_motor.ticks_left = RA_motor.step_time * USEC_TICKS ;
-    Serial.println(seconds++);
+    motor_fullstep(&RA_motor);
   }
 
   if (DEC_motor.ticks_left == 0) {

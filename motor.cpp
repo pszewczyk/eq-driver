@@ -10,17 +10,6 @@ int ctrl_sequence[SEQ_LEN][4] =
   {1, 0, 1, 0},
   {1, 0, 0, 1},
 };
-int half_sequence[2*SEQ_LEN][4] = 
-{
-  {0, 1, 0, 1},
-  {0, 1, 1, 1},
-  {0, 1, 1, 0},
-  {1, 1, 1, 0},
-  {1, 0, 1, 0},
-  {1, 0, 1, 1},
-  {1, 0, 0, 1},
-  {1, 1, 0, 1},
-};
 
 #define MICROSTEPS 16
 #define SINE_RES 16
