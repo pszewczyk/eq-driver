@@ -1,0 +1,13 @@
+This is a template for creating nrf5x projects.
+
+BUILDING
+Specify SDK root in Makefile, than execute make.
+
+ADDING MODULES
+To use the nrf modules do the following:
+ - Make sure headers locations are specified in makefile
+ - Add modules source paths to makefile
+ - Define proper ENABLE flag in config/sdk_config.h
+
+FLASHING
+Just flash the .hex file with your favourite flashing tool.
