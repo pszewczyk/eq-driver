@@ -13,6 +13,9 @@ LINKER_SCRIPT = ${PROJECT_NAME}.ld
 SRC_FILES += \
 	${SDK_ROOT}/components/toolchain/gcc/gcc_startup_nrf51.S \
 	${SDK_ROOT}/components/toolchain/system_nrf51.c \
+	${SDK_ROOT}/components/softdevice/common/softdevice_handler/softdevice_handler.c \
+	${SDK_ROOT}/components/libraries/util/app_error.c \
+	${SDK_ROOT}/components/libraries/util/app_util_platform.c \
 	main.c
 
 INC_FOLDERS += \
@@ -23,7 +26,10 @@ INC_FOLDERS += \
 	${SDK_ROOT}/components/libraries/util/ \
 	${SDK_ROOT}/components/libraries/timer/ \
 	${SDK_ROOT}/components/softdevice/s130/headers/ \
+	${SDK_ROOT}/components/softdevice/common/softdevice_handler/ \
 	${SDK_ROOT}/components/toolchain/cmsis/include \
+	${SDK_ROOT}/components/libraries/log/ \
+	${SDK_ROOT}/components/libraries/log/src/ \
 	./config
 
 CFLAGS += -DS130
