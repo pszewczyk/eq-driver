@@ -6,6 +6,7 @@
 #include "ble_conn_params.h"
 #include "ble_advertising.h"
 #include "app_timer.h"
+#include "bsp.h"
 
 #define LED_PIN 21
 #define DEVICE_NAME "EQ-Control"
@@ -72,10 +73,10 @@ static void app_on_ble_evt(ble_evt_t *ble_evt)
 	switch (ble_evt->header.evt_id)
 	{
 	case BLE_GAP_EVT_CONNECTED:
-		nrf_gpio_pin_set(LED_PIN);
+	//	nrf_gpio_pin_set(LED_PIN);
 		break;
 	case BLE_GAP_EVT_DISCONNECTED:
-		nrf_gpio_pin_clear(LED_PIN);
+	//	nrf_gpio_pin_clear(LED_PIN);
 		break;
 	default:
 		/* stub */
@@ -88,7 +89,7 @@ static void ble_event_handler(ble_evt_t *ble_evt)
 	/* This handler can call already implemented handlers from used modules */
 	/* Connection handler */
 	ble_conn_params_on_ble_evt(ble_evt);
-	
+
 	/* Our application handler */
 	app_on_ble_evt(ble_evt);
 
@@ -129,7 +130,8 @@ static int ble_init()
 	APP_ERROR_CHECK(ret);
 
 	/* Enable or disable service changed characteristics */
-	enable_params.gatts_enable_params.service_changed = 0;
+	enable_params.gatts_enable_params.service_changed = 1;
+
 	ret = softdevice_enable(&enable_params);
 	APP_ERROR_CHECK(ret);
 
@@ -139,6 +141,7 @@ static int ble_init()
 	ret = softdevice_sys_evt_handler_set(sys_event_handler);
 	APP_ERROR_CHECK(ret);
 
+	BLE_GAP_CONN_SEC_MODE_SET_OPEN(&sec_mode);
 	ret = sd_ble_gap_device_name_set(&sec_mode,
 			(const uint8_t *)DEVICE_NAME, sizeof(DEVICE_NAME)+1);
 	APP_ERROR_CHECK(ret);
@@ -160,14 +163,22 @@ static int ble_init()
 
 int main(void)
 {
+	int ret;
+
 	/* Need to start the timer module */
 	APP_TIMER_INIT(TIMER_PRESCALER, TIMER_OP_QUEUE_SIZE, 0);
+    	ret = bsp_init(BSP_INIT_LED, APP_TIMER_TICKS(100, TIMER_PRESCALER), NULL);
+	APP_ERROR_CHECK(ret);
 
 	nrf_gpio_pin_dir_set(LED_PIN, NRF_GPIO_PIN_DIR_OUTPUT);
 	ble_init();
 
 	/* Starting bluetooth service */
-	ble_advertising_start(BLE_ADV_MODE_FAST);
+	ret = ble_advertising_start(BLE_ADV_MODE_FAST);
+	APP_ERROR_CHECK(ret);
+
+	/* Indicate the setup was successfull */
+	nrf_gpio_pin_set(LED_PIN);
 
 	while (1)
 	{

@@ -52,6 +52,8 @@ SRC_FILES += \
 	$(SDK_ROOT)/components/toolchain/gcc/gcc_startup_nrf51.S \
 	$(SDK_ROOT)/components/toolchain/system_nrf51.c \
 	$(SDK_ROOT)/components/softdevice/common/softdevice_handler/softdevice_handler.c \
+	$(SDK_ROOT)/components/boards/boards.c \
+	${SDK_ROOT}/components/libraries/bsp/bsp.c \
 	main.c
 
 INC_FOLDERS += \
@@ -67,9 +69,13 @@ INC_FOLDERS += \
 	${SDK_ROOT}/components/libraries/log/ \
 	${SDK_ROOT}/components/libraries/log/src/ \
 	${SDK_ROOT}/components/libraries/fstorage/ \
+	${SDK_ROOT}/components/libraries/button/ \
 	${SDK_ROOT}/components/libraries/experimental_section_vars \
 	${SDK_ROOT}/components/ble/common/ \
 	${SDK_ROOT}/components/ble/ble_advertising/ \
+	${SDK_ROOT}/components/ble/ble_advertising/ \
+	$(SDK_ROOT)/components/boards \
+	$(SDK_ROOT)/components/libraries/bsp \
 	./config
 
 CFLAGS += -DS130
@@ -81,6 +87,7 @@ CFLAGS += -DSWI_DISABLE0
 CFLAGS += -DBSP_DEFINES_ONLY
 CFLAGS += -DNRF51822
 CFLAGS += -DNRF_SD_BLE_API_VERSION=2
+CFLAGS += -DBOARD_CUSTOM
 CFLAGS += -mcpu=cortex-m0
 CFLAGS += -mthumb -mabi=aapcs
 CFLAGS +=  -Wall -Werror -O3 -g3
