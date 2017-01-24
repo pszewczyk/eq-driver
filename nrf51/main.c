@@ -126,43 +126,34 @@ static int ble_init()
 	SOFTDEVICE_HANDLER_INIT(&nrf_clock, NULL);
 
 	ret = softdevice_enable_get_default_config(0, 1, &enable_params);
-	if (ret < 0)
-		return ret;
+	APP_ERROR_CHECK(ret);
 
 	/* Enable or disable service changed characteristics */
 	enable_params.gatts_enable_params.service_changed = 0;
 	ret = softdevice_enable(&enable_params);
-	if (ret < 0)
-		return ret;
+	APP_ERROR_CHECK(ret);
 
 	ret = softdevice_ble_evt_handler_set(ble_event_handler);
-	if (ret < 0)
-		return ret;
+	APP_ERROR_CHECK(ret);
 
 	ret = softdevice_sys_evt_handler_set(sys_event_handler);
-	if (ret < 0)
-		return ret;
+	APP_ERROR_CHECK(ret);
 
 	ret = sd_ble_gap_device_name_set(&sec_mode,
 			(const uint8_t *)DEVICE_NAME, sizeof(DEVICE_NAME)+1);
-	if (ret < 0)
-		return ret;
+	APP_ERROR_CHECK(ret);
 
 	ret = sd_ble_gap_ppcp_set(&gap_conn_params);
-	if (ret < 0)
-		return ret;
+	APP_ERROR_CHECK(ret);
 
 	ret = services_init();
-	if (ret < 0)
-		return ret;
+	APP_ERROR_CHECK(ret);
 
 	ret = ble_advertising_init(&advdata, NULL, &advcfg, on_adv_evt, NULL);
-	if (ret < 0)
-		return ret;
+	APP_ERROR_CHECK(ret);
 
 	ret = ble_conn_params_init(&conn_params_init);
-	if (ret < 0)
-		return ret;
+	APP_ERROR_CHECK(ret);
 
 	return 0;
 }
@@ -180,7 +171,7 @@ int main(void)
 
 	while (1)
 	{
-		/* do something? */
+		sd_app_evt_wait();
 	}
 
 	return 0;
