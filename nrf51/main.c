@@ -5,9 +5,13 @@
 #include "softdevice_handler.h"
 #include "ble_conn_params.h"
 #include "ble_advertising.h"
+#include "app_timer.h"
 
 #define LED_PIN 21
 #define DEVICE_NAME "EQ-Control"
+
+#define TIMER_PRESCALER 0
+#define TIMER_OP_QUEUE_SIZE 4
 
 static ble_advdata_t advdata = {
 	.name_type = BLE_ADVDATA_FULL_NAME,
@@ -22,11 +26,24 @@ static ble_adv_modes_config_t advcfg = {
 };
 
 /* Values in 1.25ms units */
-static ble_gap_conn_params_t conn_params = {
+static ble_gap_conn_params_t gap_conn_params = {
 	.min_conn_interval = 100,
 	.max_conn_interval = 200,
 	.slave_latency = 0,
 	.conn_sup_timeout = 4000,
+};
+
+static void on_conn_params_evt(ble_conn_params_evt_t *evt);
+static void conn_params_error_handler(uint32_t nrf_error);
+static ble_conn_params_init_t conn_params_init = {
+	.p_conn_params = NULL,
+	.first_conn_params_update_delay = APP_TIMER_TICKS(5000, TIMER_PRESCALER),
+	.next_conn_params_update_delay = APP_TIMER_TICKS(30000, TIMER_PRESCALER),
+	.max_conn_params_update_count = 3,
+	.start_on_notify_cccd_handle = BLE_GATT_HANDLE_INVALID,
+	.disconnect_on_fail = 0,
+	.evt_handler = on_conn_params_evt,
+	.error_handler = conn_params_error_handler,
 };
 
 /* TODO This is open link setting, consider more secure connections */
@@ -34,6 +51,16 @@ static ble_gap_conn_sec_mode_t sec_mode = {
 	.sm = 1,
 	.lv = 1
 };
+
+/* service definition TODO */
+
+static void on_conn_params_evt(ble_conn_params_evt_t *evt)
+{
+}
+
+static void conn_params_error_handler(uint32_t nrf_error)
+{
+}
 
 void app_error_fault_handler(uint32_t id, uint32_t pc, uint32_t info)
 {
@@ -121,7 +148,11 @@ static int ble_init()
 	if (ret < 0)
 		return ret;
 
-	ret = sd_ble_gap_ppcp_set(&conn_params);
+	ret = sd_ble_gap_ppcp_set(&gap_conn_params);
+	if (ret < 0)
+		return ret;
+
+	ret = services_init();
 	if (ret < 0)
 		return ret;
 
@@ -129,7 +160,7 @@ static int ble_init()
 	if (ret < 0)
 		return ret;
 
-	ret = services_init();
+	ret = ble_conn_params_init(&conn_params_init);
 	if (ret < 0)
 		return ret;
 
@@ -138,8 +169,14 @@ static int ble_init()
 
 int main(void)
 {
+	/* Need to start the timer module */
+	APP_TIMER_INIT(TIMER_PRESCALER, TIMER_OP_QUEUE_SIZE, 0);
+
 	nrf_gpio_pin_dir_set(LED_PIN, NRF_GPIO_PIN_DIR_OUTPUT);
 	ble_init();
+
+	/* Starting bluetooth service */
+	ble_advertising_start(BLE_ADV_MODE_FAST);
 
 	while (1)
 	{
