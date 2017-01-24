@@ -9,11 +9,31 @@
 #define LED_PIN 21
 #define DEVICE_NAME "EQ-Control"
 
+static ble_advdata_t advdata = {
+	.name_type = BLE_ADVDATA_FULL_NAME,
+	.flags = BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE,
+	.include_appearance = 0,
+};
+
+static ble_adv_modes_config_t advcfg = {
+	.ble_adv_fast_enabled = 1,
+	.ble_adv_fast_interval = 50, /* in 0.65ms units */
+	.ble_adv_fast_timeout = 120, /* in seconds */
+};
+
 /* Values in 1.25ms units */
-#define MIN_CONN_INTERVAL 100
-#define MAX_CONN_INTERVAL 200
-#define SLAVE_LATENCY 0
-#define CONN_SUP_TIMEOUT 4000
+static ble_gap_conn_params_t conn_params = {
+	.min_conn_interval = 100,
+	.max_conn_interval = 200,
+	.slave_latency = 0,
+	.conn_sup_timeout = 4000,
+};
+
+/* TODO This is open link setting, consider more secure connections */
+static ble_gap_conn_sec_mode_t sec_mode = {
+	.sm = 1,
+	.lv = 1
+};
 
 void app_error_fault_handler(uint32_t id, uint32_t pc, uint32_t info)
 {
@@ -54,6 +74,16 @@ static void sys_event_handler(uint32_t sys_evt)
 	ble_advertising_on_sys_evt(sys_evt);
 }
 
+static void on_adv_evt(ble_adv_evt_t ble_adv_evt)
+{
+	/* TODO */
+}
+
+static int services_init()
+{
+	return 0;
+}
+
 /** @brief Initialize ble stack */
 static int ble_init()
 {
@@ -86,23 +116,6 @@ static int ble_init()
 	if (ret < 0)
 		return ret;
 
-	return 0;
-}
-
-static int gap_params_init(void)
-{
-	uint32_t ret;
-	ble_gap_conn_params_t conn_params = {
-		.min_conn_interval = MIN_CONN_INTERVAL,
-		.max_conn_interval = MAX_CONN_INTERVAL,
-		.slave_latency = SLAVE_LATENCY,
-		.conn_sup_timeout = CONN_SUP_TIMEOUT
-	};
-
-	ble_gap_conn_sec_mode_t sec_mode;
-
-	BLE_GAP_CONN_SEC_MODE_SET_OPEN(&sec_mode);
-
 	ret = sd_ble_gap_device_name_set(&sec_mode,
 			(const uint8_t *)DEVICE_NAME, sizeof(DEVICE_NAME)+1);
 	if (ret < 0)
@@ -112,14 +125,22 @@ static int gap_params_init(void)
 	if (ret < 0)
 		return ret;
 
+	ret = ble_advertising_init(&advdata, NULL, &advcfg, on_adv_evt, NULL);
+	if (ret < 0)
+		return ret;
+
+	ret = services_init();
+	if (ret < 0)
+		return ret;
+
 	return 0;
 }
 
 int main(void)
 {
-	ble_init();
-	gap_params_init();
 	nrf_gpio_pin_dir_set(LED_PIN, NRF_GPIO_PIN_DIR_OUTPUT);
+	ble_init();
+
 	while (1)
 	{
 		/* do something? */
