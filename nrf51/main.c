@@ -7,6 +7,13 @@
 #include "ble_advertising.h"
 
 #define LED_PIN 21
+#define DEVICE_NAME "EQ-Control"
+
+/* Values in 1.25ms units */
+#define MIN_CONN_INTERVAL 100
+#define MAX_CONN_INTERVAL 200
+#define SLAVE_LATENCY 0
+#define CONN_SUP_TIMEOUT 4000
 
 void app_error_fault_handler(uint32_t id, uint32_t pc, uint32_t info)
 {
@@ -15,6 +22,18 @@ void app_error_fault_handler(uint32_t id, uint32_t pc, uint32_t info)
 
 static void app_on_ble_evt(ble_evt_t *ble_evt)
 {
+	switch (ble_evt->header.evt_id)
+	{
+	case BLE_GAP_EVT_CONNECTED:
+		nrf_gpio_pin_set(LED_PIN);
+		break;
+	case BLE_GAP_EVT_DISCONNECTED:
+		nrf_gpio_pin_clear(LED_PIN);
+		break;
+	default:
+		/* stub */
+		break;
+	}
 }
 
 static void ble_event_handler(ble_evt_t *ble_evt)
@@ -70,13 +89,41 @@ static int ble_init()
 	return 0;
 }
 
+static int gap_params_init(void)
+{
+	uint32_t ret;
+	ble_gap_conn_params_t conn_params = {
+		.min_conn_interval = MIN_CONN_INTERVAL,
+		.max_conn_interval = MAX_CONN_INTERVAL,
+		.slave_latency = SLAVE_LATENCY,
+		.conn_sup_timeout = CONN_SUP_TIMEOUT
+	};
+
+	ble_gap_conn_sec_mode_t sec_mode;
+
+	BLE_GAP_CONN_SEC_MODE_SET_OPEN(&sec_mode);
+
+	ret = sd_ble_gap_device_name_set(&sec_mode,
+			(const uint8_t *)DEVICE_NAME, sizeof(DEVICE_NAME)+1);
+	if (ret < 0)
+		return ret;
+
+	ret = sd_ble_gap_ppcp_set(&conn_params);
+	if (ret < 0)
+		return ret;
+
+	return 0;
+}
+
 int main(void)
 {
 	ble_init();
+	gap_params_init();
 	nrf_gpio_pin_dir_set(LED_PIN, NRF_GPIO_PIN_DIR_OUTPUT);
 	while (1)
 	{
-		nrf_gpio_pin_toggle(LED_PIN);
-		nrf_delay_ms(500);
+		/* do something? */
 	}
+
+	return 0;
 }
