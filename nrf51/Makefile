@@ -61,6 +61,8 @@ INC_FOLDERS += \
 	${SDK_ROOT}/components/toolchain/ \
 	${SDK_ROOT}/components/drivers_nrf/hal/ \
 	${SDK_ROOT}/components/drivers_nrf/delay \
+	$(SDK_ROOT)/components/drivers_nrf/clock \
+	$(SDK_ROOT)/components/drivers_nrf/common \
 	${SDK_ROOT}/components/libraries/util/ \
 	${SDK_ROOT}/components/libraries/timer/ \
 	${SDK_ROOT}/components/softdevice/s130/headers/ \
@@ -71,6 +73,8 @@ INC_FOLDERS += \
 	${SDK_ROOT}/components/libraries/fstorage/ \
 	${SDK_ROOT}/components/libraries/button/ \
 	${SDK_ROOT}/components/libraries/experimental_section_vars \
+	$(SDK_ROOT)/components/libraries/fds \
+	$(SDK_ROOT)/components/ble/peer_manager \
 	${SDK_ROOT}/components/ble/common/ \
 	${SDK_ROOT}/components/ble/ble_advertising/ \
 	${SDK_ROOT}/components/ble/ble_advertising/ \
