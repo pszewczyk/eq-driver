@@ -2,6 +2,8 @@ This is a template for creating nrf5x projects.
 
 BUILDING
 Specify SDK root in Makefile, than execute make.
+Find Makefile.posix and Makefile.common in sdk directory, you may need to edit them.
+Try installing new arm-none-eabi version
 
 ADDING MODULES
 To use the nrf modules do the following:
