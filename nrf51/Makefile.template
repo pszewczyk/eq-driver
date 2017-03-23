@@ -1,4 +1,4 @@
-SDK_ROOT = /mnt/storage/nrf51822
+SDK_ROOT = 
 
 # Project-specific
 PROJECT_NAME = template_project
