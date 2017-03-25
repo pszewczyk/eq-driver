@@ -1,4 +1,5 @@
 SDK_ROOT = 
+OPENOCD_CFGFILE=/etc/openocd/openocd.cfg
 
 # Project-specific
 PROJECT_NAME = template_project
@@ -116,6 +117,11 @@ ASMFLAGS += -DNRF51822
 ASMFLAGS += -DNRF_SD_BLE_API_VERSION=2
 
 default: ${TARGET}
+
+# Flash using openocd
+flash: ${OUTPUT_DIRECTORY}/${TARGET}.hex
+	@echo Flashing ${TARGET} using openocd
+	sudo openocd -f ${OPENOCD_CFGFILE} -c "program ${OUTPUT_DIRECTORY}/${TARGET}.hex verify reset exit"
 
 include $(TEMPLATE_PATH)/Makefile.common
 
