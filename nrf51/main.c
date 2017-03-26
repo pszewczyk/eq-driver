@@ -14,6 +14,9 @@
 #define TIMER_PRESCALER 0
 #define TIMER_OP_QUEUE_SIZE 8
 
+#define SERVICE_UUID 0x1523
+#define CHAR_UUID 0x1525
+
 static ble_advdata_t advdata = {
 	.name_type = BLE_ADVDATA_FULL_NAME,
 	.flags = BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE,
@@ -32,7 +35,7 @@ static ble_gap_conn_params_t gap_conn_params = {
 	.max_conn_interval = 200,
 	.slave_latency = 0,
 	.conn_sup_timeout = 4000,
-};
+};	
 
 static void on_conn_params_evt(ble_conn_params_evt_t *evt);
 static void conn_params_error_handler(uint32_t nrf_error);
@@ -54,6 +57,13 @@ static ble_gap_conn_sec_mode_t sec_mode = {
 };
 
 /* service definition TODO */
+
+static ble_uuid128_t base_uuid = {
+	{
+		0x44, 0x69, 0xd6, 0xdb, 0xfe, 0x22, 0x80, 0x9d,
+		0x79, 0x46, 0x72, 0xf6, 0x00, 0x00, 0x00, 0x00
+	}
+};
 
 static void on_conn_params_evt(ble_conn_params_evt_t *evt)
 {
@@ -107,8 +117,53 @@ static void on_adv_evt(ble_adv_evt_t ble_adv_evt)
 	/* TODO */
 }
 
+static uint16_t service_handle;
+static ble_gatts_char_handles_t char_handle;
+
+#define CHAR_LEN 4
+static uint8_t char_value_buffer[CHAR_LEN] = {0x12, 0x34, 0x56, 0x78};
+
 static int services_init()
 {
+	int ret;
+	ble_gatts_char_md_t char_md;
+	ble_gatts_attr_md_t attr_md;
+	ble_gatts_attr_t char_value;
+	ble_uuid_t uuid;
+
+	uuid.uuid = SERVICE_UUID;
+	ret = sd_ble_uuid_vs_add(&base_uuid, &uuid.type);
+	APP_ERROR_CHECK(ret);
+
+	ret = sd_ble_gatts_service_add(BLE_GATTS_SRVC_TYPE_PRIMARY,
+			&uuid, &service_handle);
+	APP_ERROR_CHECK(ret);
+
+	memset(&char_md, 0, sizeof(char_md));
+	char_md.char_props.read = 1;
+	char_md.char_props.notify = 1;
+
+	uuid.uuid = CHAR_UUID;
+
+	memset(&attr_md, 0, sizeof(attr_md));
+	BLE_GAP_CONN_SEC_MODE_SET_OPEN(&attr_md.read_perm);
+	BLE_GAP_CONN_SEC_MODE_SET_OPEN(&attr_md.write_perm);
+	/* Location of the value structure */
+	attr_md.vloc = BLE_GATTS_VLOC_STACK;
+
+	memset(&char_value, 0, sizeof(char_value));
+	char_value.p_uuid = &uuid;
+	char_value.p_attr_md = &attr_md;
+	char_value.init_len = CHAR_LEN;
+	char_value.max_len = CHAR_LEN;
+	char_value.p_value = char_value_buffer;
+
+	ret = sd_ble_gatts_characteristic_add(service_handle, &char_md,
+			&char_value, &char_handle);
+	APP_ERROR_CHECK(ret);
+
+	APP_ERROR_CHECK(ret);
+
 	return 0;
 }
 
