@@ -12,7 +12,7 @@
 #define DEVICE_NAME "EQ-Control"
 
 #define TIMER_PRESCALER 0
-#define TIMER_OP_QUEUE_SIZE 4
+#define TIMER_OP_QUEUE_SIZE 8
 
 static ble_advdata_t advdata = {
 	.name_type = BLE_ADVDATA_FULL_NAME,
@@ -161,6 +161,27 @@ static int ble_init()
 	return 0;
 }
 
+void led_timer_handler(void *p_context)
+{
+	nrf_gpio_pin_toggle(LED0);
+}
+
+APP_TIMER_DEF(led_timer_id);
+
+/* dummy timer */
+void timer_init()
+{
+	uint32_t ret;
+
+	ret = app_timer_create(&led_timer_id, APP_TIMER_MODE_REPEATED, led_timer_handler);
+	APP_ERROR_CHECK(ret);
+
+	ret = app_timer_start(led_timer_id, APP_TIMER_TICKS(500, TIMER_PRESCALER), NULL);
+	APP_ERROR_CHECK(ret);
+
+	nrf_gpio_pin_set(LED0);
+}
+
 int main(void)
 {
 	int ret;
@@ -171,7 +192,9 @@ int main(void)
 	APP_ERROR_CHECK(ret);
 
 	nrf_gpio_pin_dir_set(LED_PIN, NRF_GPIO_PIN_DIR_OUTPUT);
+	nrf_gpio_pin_dir_set(LED0, NRF_GPIO_PIN_DIR_OUTPUT);
 	ble_init();
+	timer_init();
 
 	/* Starting bluetooth service */
 	ret = ble_advertising_start(BLE_ADV_MODE_FAST);
