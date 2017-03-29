@@ -6,7 +6,11 @@
 #include "ble_conn_params.h"
 #include "ble_advertising.h"
 #include "app_timer.h"
+#include "app_uart.h"
 #include "bsp.h"
+#include "nrf_log.h"
+#include "nrf_log_ctrl.h"
+#include "ser_dbg_sd_str.h"
 
 #define LED_PIN 21
 #define DEVICE_NAME "EQ-Control"
@@ -16,6 +20,8 @@
 
 #define SERVICE_UUID 0x1523
 #define CHAR_UUID 0x1525
+
+#define APP_UUID_TYPE BLE_UUID_TYPE_VENDOR_BEGIN;
 
 static ble_advdata_t advdata = {
 	.name_type = BLE_ADVDATA_FULL_NAME,
@@ -78,18 +84,42 @@ void app_error_fault_handler(uint32_t id, uint32_t pc, uint32_t info)
 	/* Fault handler stub */
 }
 
+static void app_handle_write(ble_gatts_evt_write_t *evt)
+{
+	NRF_LOG_DEBUG("Attribute uuid: %04x, %d bytes written\r\n", evt->uuid.uuid,
+			evt->len);
+}
+
 static void app_on_ble_evt(ble_evt_t *ble_evt)
 {
 	switch (ble_evt->header.evt_id)
 	{
 	case BLE_GAP_EVT_CONNECTED:
-	//	nrf_gpio_pin_set(LED_PIN);
+		NRF_LOG_INFO("Connected\r\n");
 		break;
 	case BLE_GAP_EVT_DISCONNECTED:
-	//	nrf_gpio_pin_clear(LED_PIN);
+		NRF_LOG_INFO("Disconnected\r\n");
+		break;
+	case BLE_GAP_EVT_AUTH_STATUS:
+		NRF_LOG_INFO("Authhentication procedure completed with status %d\r\n",
+				ble_evt->evt.gap_evt.params.auth_status.auth_status);
+		break;
+	case BLE_GAP_EVT_LESC_DHKEY_REQUEST:
+		NRF_LOG_INFO("Request to calculate an LE Secure Connections DHKey.\r\n");
+		break;
+	case BLE_GATTS_EVT_TIMEOUT:
+		NRF_LOG_INFO("GATT server timeout\r\n");
+		break;
+	case BLE_GATTC_EVT_TIMEOUT:
+		NRF_LOG_INFO("GATT client timeout\r\n");
+		break;
+	case BLE_GATTS_EVT_WRITE:
+		NRF_LOG_INFO("GATT server write\r\n");
+		app_handle_write(&ble_evt->evt.gatts_evt.params.write);
 		break;
 	default:
-		/* stub */
+		NRF_LOG_INFO("Other event: %d: %s\r\n", ble_evt->header.evt_id,
+				(uint32_t)(ser_dbg_sd_evt_str_get(ble_evt->header.evt_id)));
 		break;
 	}
 }
@@ -241,6 +271,10 @@ int main(void)
 {
 	int ret;
 
+	ret = NRF_LOG_INIT(NULL);
+	APP_ERROR_CHECK(ret);
+
+	NRF_LOG_INFO("\r\nInitializing...\r\n")
 	/* Need to start the timer module */
 	APP_TIMER_INIT(TIMER_PRESCALER, TIMER_OP_QUEUE_SIZE, 0);
     	ret = bsp_init(BSP_INIT_LED, APP_TIMER_TICKS(100, TIMER_PRESCALER), NULL);
@@ -248,7 +282,9 @@ int main(void)
 
 	nrf_gpio_pin_dir_set(LED_PIN, NRF_GPIO_PIN_DIR_OUTPUT);
 	nrf_gpio_pin_dir_set(LED0, NRF_GPIO_PIN_DIR_OUTPUT);
+	NRF_LOG_INFO("\r\nInitializing BLE...\r\n")
 	ble_init();
+	NRF_LOG_INFO("\r\nInitializing timers...\r\n")
 	timer_init();
 
 	/* Starting bluetooth service */
@@ -258,9 +294,12 @@ int main(void)
 	/* Indicate the setup was successfull */
 	nrf_gpio_pin_set(LED_PIN);
 
+	NRF_LOG_INFO("\r\nInitialization completed\r\n")
+
 	while (1)
 	{
-		sd_app_evt_wait();
+		if (NRF_LOG_PROCESS() == false)
+			sd_app_evt_wait();
 	}
 
 	return 0;
