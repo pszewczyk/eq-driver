@@ -148,18 +148,67 @@ static void on_adv_evt(ble_adv_evt_t ble_adv_evt)
 }
 
 static uint16_t service_handle;
-static ble_gatts_char_handles_t char_handle;
 
-#define CHAR_LEN 4
-static uint8_t char_value_buffer[CHAR_LEN] = {0x12, 0x34, 0x56, 0x78};
+struct context {
+	uint32_t ra;
+	uint32_t dec;
+} ctx;
+
+enum {
+	PERM_READ = 0x01,
+	PERM_WRITE = 0x02,
+};
+
+/**
+ * Add a characteristic of fixed length with selected permissions
+ */
+static int add_characteristic(uint16_t service, int len,
+		uint8_t *data, uint16_t uuid, int perm, ble_gatts_char_handles_t *handle)
+{
+	int ret;	
+
+	ble_gatts_char_md_t char_md;
+	ble_gatts_attr_md_t attr_md;
+	ble_gatts_attr_t char_value;
+	ble_uuid_t char_uuid;
+
+	memset(&char_md, 0, sizeof(char_md));
+	char_md.char_props.read = !!(perm & PERM_READ);
+	char_md.char_props.write = !!(perm & PERM_WRITE);
+	char_md.char_props.notify = 1;
+
+	char_uuid.type = APP_UUID_TYPE;
+	char_uuid.uuid = uuid;
+
+	memset(&attr_md, 0, sizeof(attr_md));
+	if (perm & PERM_READ)
+		BLE_GAP_CONN_SEC_MODE_SET_OPEN(&attr_md.read_perm);
+	
+	if (perm & PERM_WRITE)
+		BLE_GAP_CONN_SEC_MODE_SET_OPEN(&attr_md.write_perm);
+
+	/* Location of the value structure */
+	attr_md.vloc = BLE_GATTS_VLOC_STACK;
+
+	memset(&char_value, 0, sizeof(char_value));
+	char_value.p_uuid = &char_uuid;
+	char_value.p_attr_md = &attr_md;
+	char_value.init_len = len;
+	char_value.max_len = len;
+	char_value.p_value = data;
+
+	ret = sd_ble_gatts_characteristic_add(service, &char_md,
+			&char_value, handle);
+	APP_ERROR_CHECK(ret);
+
+	return ret;
+}
 
 static int services_init()
 {
 	int ret;
-	ble_gatts_char_md_t char_md;
-	ble_gatts_attr_md_t attr_md;
-	ble_gatts_attr_t char_value;
 	ble_uuid_t uuid;
+	ble_gatts_char_handles_t char_handle[2];
 
 	uuid.uuid = SERVICE_UUID;
 	ret = sd_ble_uuid_vs_add(&base_uuid, &uuid.type);
@@ -169,31 +218,10 @@ static int services_init()
 			&uuid, &service_handle);
 	APP_ERROR_CHECK(ret);
 
-	memset(&char_md, 0, sizeof(char_md));
-	char_md.char_props.read = 1;
-	char_md.char_props.notify = 1;
-
-	uuid.uuid = CHAR_UUID;
-
-	memset(&attr_md, 0, sizeof(attr_md));
-	BLE_GAP_CONN_SEC_MODE_SET_OPEN(&attr_md.read_perm);
-	BLE_GAP_CONN_SEC_MODE_SET_OPEN(&attr_md.write_perm);
-	/* Location of the value structure */
-	attr_md.vloc = BLE_GATTS_VLOC_STACK;
-
-	memset(&char_value, 0, sizeof(char_value));
-	char_value.p_uuid = &uuid;
-	char_value.p_attr_md = &attr_md;
-	char_value.init_len = CHAR_LEN;
-	char_value.max_len = CHAR_LEN;
-	char_value.p_value = char_value_buffer;
-
-	ret = sd_ble_gatts_characteristic_add(service_handle, &char_md,
-			&char_value, &char_handle);
-	APP_ERROR_CHECK(ret);
-
-	APP_ERROR_CHECK(ret);
-
+	ret = add_characteristic(service_handle, sizeof(ctx.ra),
+			(uint8_t *)&ctx.ra, 0x1525, PERM_WRITE | PERM_READ, &char_handle[0]);
+	ret = add_characteristic(service_handle, sizeof(ctx.dec),
+			(uint8_t *)&ctx.dec, 0x1526, PERM_WRITE | PERM_READ, &char_handle[1]);
 	return 0;
 }
 
