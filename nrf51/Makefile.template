@@ -55,6 +55,9 @@ SRC_FILES += \
 	$(SDK_ROOT)/components/softdevice/common/softdevice_handler/softdevice_handler.c \
 	$(SDK_ROOT)/components/boards/boards.c \
 	${SDK_ROOT}/components/libraries/bsp/bsp.c \
+	${SDK_ROOT}/components/libraries/uart/app_uart.c \
+	${SDK_ROOT}/components/serialization/common/ser_dbg_sd_str.c \
+	eq_ble.c \
 	main.c
 
 INC_FOLDERS += \
@@ -64,6 +67,7 @@ INC_FOLDERS += \
 	${SDK_ROOT}/components/drivers_nrf/delay \
 	$(SDK_ROOT)/components/drivers_nrf/clock \
 	$(SDK_ROOT)/components/drivers_nrf/common \
+	$(SDK_ROOT)/components/drivers_nrf/uart \
 	${SDK_ROOT}/components/libraries/util/ \
 	${SDK_ROOT}/components/libraries/timer/ \
 	${SDK_ROOT}/components/softdevice/s130/headers/ \
@@ -81,6 +85,8 @@ INC_FOLDERS += \
 	${SDK_ROOT}/components/ble/ble_advertising/ \
 	$(SDK_ROOT)/components/boards \
 	$(SDK_ROOT)/components/libraries/bsp \
+	$(SDK_ROOT)/components/libraries/uart \
+	$(SDK_ROOT)/components/serialization/common \
 	./config
 
 CFLAGS += -DS130
