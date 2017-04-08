@@ -19,6 +19,11 @@ enum eq_gatt_perm {
 extern ble_uuid128_t base_uuid;
 
 /**
+ * @brief Set characteristic value of fixed length
+ */
+int eq_set_characteristic_value(uint16_t handle, int len, uint8_t *data);
+
+/**
  * @brief Add fixed-length characteristic to the service
  * @param[in] service Service handle
  * @param[in] len Length of characteristic data

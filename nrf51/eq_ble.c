@@ -55,6 +55,20 @@ static void conn_params_error_handler(uint32_t nrf_error)
 {
 }
 
+int eq_set_characteristic_value(uint16_t handle, int len, uint8_t *data)
+{
+	int ret;
+
+	ble_gatts_value_t value = {
+		.len = len,
+		.offset = 0,
+		.p_value = data};
+
+	ret = sd_ble_gatts_value_set(BLE_CONN_HANDLE_ALL, handle, &value);
+
+	return ret;
+}
+
 /**
  * Add a characteristic of fixed length with selected permissions
  */

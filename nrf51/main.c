@@ -33,13 +33,20 @@
 #define FULL_STEP_LENGTH (360*60*60)/(MOTOR_STEP_RATIO * GEAR_RATIO)
 
 enum {
-	MODE_TRACKING,
-	MODE_GOTO,
-	MODE_MANUAL,
-	MODE_OFF,
+	MODE_TRACKING = 0x01,
+	MODE_GOTO = 0x02,
+	MODE_MANUAL = 0x03,
+	MODE_OFF = 0xff,
 };
 
-#define CHAR_NUMBER 4
+enum {
+	CHAR_POS = 0,
+	CHAR_DEST = 1,
+	CHAR_MODE = 2,
+	CHAR_REVERSE = 3,
+	CHAR_NUMBER = 4,
+};
+
 struct context {
 	uint16_t service_handle;
 	uint32_t pos[2]; /**< position in acrseconds {RA, DEC} */
@@ -53,6 +60,58 @@ APP_TIMER_DEF(led_timer_id);
 APP_TIMER_DEF(sky_movement_timer_id);
 APP_TIMER_DEF(goto_timer_id);
 APP_TIMER_DEF(manual_timer_id);
+
+void ctx_set_mode(uint8_t mode)
+{
+	int ret;
+
+	ctx.mode = mode;
+	ret = eq_set_characteristic_value(ctx.char_handle[CHAR_MODE].value_handle,
+			sizeof(ctx.mode), &ctx.mode);
+	APP_ERROR_CHECK(ret);
+}
+
+void ctx_set_reverse(uint8_t reverse)
+{
+	int ret;
+
+	ctx.reverse = reverse;
+	ret = eq_set_characteristic_value(ctx.char_handle[CHAR_REVERSE].value_handle,
+			sizeof(ctx.reverse), &ctx.reverse);
+	APP_ERROR_CHECK(ret);
+}
+
+void ctx_set_pos(uint32_t ra, uint32_t dec)
+{
+	int ret;
+
+	ctx.pos[0] = ra;
+	ctx.pos[1] = dec;
+	ret = eq_set_characteristic_value(ctx.char_handle[CHAR_POS].value_handle,
+			2 * sizeof(uint32_t), (uint8_t *)ctx.pos);
+	APP_ERROR_CHECK(ret);
+}
+
+void ctx_set_dest(uint32_t dest_ra, uint32_t dest_dec)
+{
+	int ret;
+
+	ctx.dest[0] = dest_ra;
+	ctx.dest[1] = dest_dec;
+	ret = eq_set_characteristic_value(ctx.char_handle[CHAR_DEST].value_handle,
+			2 * sizeof(uint32_t), (uint8_t *)ctx.dest);
+	APP_ERROR_CHECK(ret);
+}
+
+/* position will be changed dynamically, consider not updating BLE stack every time it changes */
+void ctx_update_pos()
+{
+	int ret;
+
+	ret = eq_set_characteristic_value(ctx.char_handle[CHAR_POS].value_handle,
+			2 * sizeof(uint32_t), (uint8_t *)ctx.pos);
+	APP_ERROR_CHECK(ret);
+}
 
 void app_error_fault_handler(uint32_t id, uint32_t pc, uint32_t info)
 {
@@ -119,11 +178,14 @@ static void sky_movement_timer_handler(void *p_context)
 	case MODE_MANUAL:
 		/* In GOTO and MANUAL mode RA motor is controlled by different routine. */
 		if (ctx.reverse)
-			ctx.dest[0] -= STEP_LENGTH;
+			ctx.pos[0] -= STEP_LENGTH;
 		else
-			ctx.dest[0] += STEP_LENGTH;
+			ctx.pos[0] += STEP_LENGTH;
 		break;
 	}
+
+	/** For now, update every tracking step */
+	ctx_update_pos();
 }
 
 enum {
@@ -221,6 +283,10 @@ static void set_mode(int mode)
 		nrf_gpio_pin_clear(DEC_EN);
 		nrf_gpio_pin_clear(RA_EN);
 
+		/* start with no direction */
+		ra_set_dir(DIR_OFF);
+		dec_set_dir(DIR_OFF);
+
 		/* TODO Adjustable speed */
 		ret = app_timer_start(manual_timer_id, APP_TIMER_TICKS(MANUAL_STEP_MS, TIMER_PRESCALER), NULL);
 		APP_ERROR_CHECK(ret);
@@ -228,9 +294,13 @@ static void set_mode(int mode)
 	case MODE_OFF:
 		NRF_LOG_INFO("\r\nGoing into OFF mode.\r\n")
 		break;
+	default:
+		NRF_LOG_INFO("\r\nUnknown mode %d, going to OFF mode instead\r\n", mode);
+		mode = MODE_OFF;
+		break;
 	}
 
-	ctx.mode = mode;
+	ctx_set_mode(mode);
 }
 
 static void goto_timer_handler(void *p_context)
