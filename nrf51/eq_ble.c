@@ -34,11 +34,15 @@ static ble_conn_params_init_t conn_params_init = {
 	.error_handler = conn_params_error_handler,
 };
 
+static write_handler_t registered_write_handler = NULL;
+
 /* TODO This is open link setting, consider more secure connections */
 static ble_gap_conn_sec_mode_t sec_mode = {
 	.sm = 1,
 	.lv = 1
 };
+
+static uint16_t conn_handle;
 
 ble_uuid128_t base_uuid = {
 	{
@@ -55,9 +59,11 @@ static void conn_params_error_handler(uint32_t nrf_error)
 {
 }
 
-int eq_set_characteristic_value(uint16_t handle, int len, uint8_t *data)
+int eq_set_characteristic_value(uint16_t handle, uint16_t len, uint8_t *data)
 {
 	int ret;
+	ble_gatts_hvx_params_t hvx_params;
+	memset(&hvx_params, 0, sizeof(hvx_params));
 
 	ble_gatts_value_t value = {
 		.len = len,
@@ -65,6 +71,17 @@ int eq_set_characteristic_value(uint16_t handle, int len, uint8_t *data)
 		.p_value = data};
 
 	ret = sd_ble_gatts_value_set(BLE_CONN_HANDLE_ALL, handle, &value);
+
+	/* Update the value */
+	if (conn_handle != BLE_CONN_HANDLE_INVALID) {
+		hvx_params.handle = handle;
+		hvx_params.type   = BLE_GATT_HVX_NOTIFICATION;
+		hvx_params.offset = 0;
+		hvx_params.p_len  = &len;
+		hvx_params.p_data = (uint8_t*)data;  
+
+		sd_ble_gatts_hvx(conn_handle, &hvx_params);
+	}
 
 	return ret;
 }
@@ -114,10 +131,17 @@ int eq_add_characteristic(uint16_t service, int len, uint8_t *data,
 	return ret;
 }
 
+void set_write_handler(write_handler_t handler) {
+	registered_write_handler = handler;
+}
+
 static void app_handle_write(ble_gatts_evt_write_t *evt)
 {
 	NRF_LOG_DEBUG("Attribute uuid: %04x, %d bytes written\r\n", evt->uuid.uuid,
 			evt->len);
+
+	if (registered_write_handler)
+		registered_write_handler(evt->uuid.uuid, evt->len, evt->offset, evt->data);
 }
 
 static void app_on_ble_evt(ble_evt_t *ble_evt)
@@ -125,9 +149,11 @@ static void app_on_ble_evt(ble_evt_t *ble_evt)
 	switch (ble_evt->header.evt_id)
 	{
 	case BLE_GAP_EVT_CONNECTED:
+		conn_handle = ble_evt->evt.gap_evt.conn_handle;
 		NRF_LOG_INFO("Connected\r\n");
 		break;
 	case BLE_GAP_EVT_DISCONNECTED:
+        	conn_handle = BLE_CONN_HANDLE_INVALID;
 		NRF_LOG_INFO("Disconnected\r\n");
 		break;
 	case BLE_GAP_EVT_AUTH_STATUS:

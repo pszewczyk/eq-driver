@@ -18,10 +18,15 @@ enum eq_gatt_perm {
 
 extern ble_uuid128_t base_uuid;
 
+typedef void (*write_handler_t)(uint16_t uuid, uint16_t len, uint16_t offset, uint8_t *data);
+
+/* set handler to be called on write event */
+void set_write_handler(write_handler_t handler);
+
 /**
  * @brief Set characteristic value of fixed length
  */
-int eq_set_characteristic_value(uint16_t handle, int len, uint8_t *data);
+int eq_set_characteristic_value(uint16_t handle, uint16_t len, uint8_t *data);
 
 /**
  * @brief Add fixed-length characteristic to the service

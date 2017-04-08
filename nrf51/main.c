@@ -28,9 +28,10 @@
 /* step time for manual control */
 #define MANUAL_STEP_MS 20
 
+#define ARC_MAX (360*60*60)
 /* length of single microstep in arc seconds */
-#define STEP_LENGTH (360*60*60)/(MOTOR_STEP_RATIO * GEAR_RATIO * MOTOR_MICROSTEPS)
-#define FULL_STEP_LENGTH (360*60*60)/(MOTOR_STEP_RATIO * GEAR_RATIO)
+#define STEP_LENGTH (ARC_MAX)/(MOTOR_STEP_RATIO * GEAR_RATIO * MOTOR_MICROSTEPS)
+#define FULL_STEP_LENGTH (ARC_MAX)/(MOTOR_STEP_RATIO * GEAR_RATIO)
 
 enum {
 	MODE_TRACKING = 0x01,
@@ -47,10 +48,17 @@ enum {
 	CHAR_NUMBER = 4,
 };
 
+enum {
+	UUID_POS = 0x1525,
+	UUID_DEST = 0x1526,
+	UUID_MODE = 0x1527,
+	UUID_REVERSE = 0x1528,
+};
+
 struct context {
 	uint16_t service_handle;
-	uint32_t pos[2]; /**< position in acrseconds {RA, DEC} */
-	uint32_t dest[2]; /**< destination in arcseconds {RA, DEC} */
+	int32_t pos[2]; /**< position in acrseconds {RA, DEC} */
+	int32_t dest[2]; /**< destination in arcseconds {RA, DEC} */
 	uint8_t mode;
 	uint8_t reverse; /**< for simple reversing direction */
 	ble_gatts_char_handles_t char_handle[CHAR_NUMBER];
@@ -111,6 +119,10 @@ void ctx_update_pos()
 	ret = eq_set_characteristic_value(ctx.char_handle[CHAR_POS].value_handle,
 			2 * sizeof(uint32_t), (uint8_t *)ctx.pos);
 	APP_ERROR_CHECK(ret);
+
+	NRF_LOG_INFO("position = [%d %d'%d'', %d %d'%d'']\r\n",
+			ctx.pos[0]/3600, (ctx.pos[0] % 3600)/60, ctx.pos[0] % 60,
+			ctx.pos[1]/3600, (ctx.pos[1] % 3600)/60, ctx.pos[1] % 60)
 }
 
 void app_error_fault_handler(uint32_t id, uint32_t pc, uint32_t info)
@@ -137,36 +149,6 @@ void timer_init()
 	nrf_gpio_pin_set(LED0);
 }
 
-static int services_init()
-{
-	int ret;
-	ble_uuid_t uuid;
-
-	uuid.uuid = SERVICE_UUID;
-	ret = sd_ble_uuid_vs_add(&base_uuid, &uuid.type);
-	APP_ERROR_CHECK(ret);
-
-	ret = sd_ble_gatts_service_add(BLE_GATTS_SRVC_TYPE_PRIMARY,
-			&uuid, &ctx.service_handle);
-	APP_ERROR_CHECK(ret);
-
-/* TODO ERROR handling
- * TODO UUID generalization*/
-	ret = eq_add_characteristic(ctx.service_handle, 2 * sizeof(uint32_t),
-			(uint8_t *)ctx.pos[0], 0x1525, PERM_WRITE | PERM_READ, &ctx.char_handle[0]);
-
-	ret = eq_add_characteristic(ctx.service_handle, 2 * sizeof(uint32_t),
-			(uint8_t *)ctx.dest, 0x1526, PERM_WRITE | PERM_READ, &ctx.char_handle[1]);
-
-	ret = eq_add_characteristic(ctx.service_handle, sizeof(ctx.mode),
-			(uint8_t *)&ctx.mode, 0x1528, PERM_WRITE | PERM_READ, &ctx.char_handle[2]);
-
-	ret = eq_add_characteristic(ctx.service_handle, sizeof(ctx.reverse),
-			(uint8_t *)&ctx.reverse, 0x1528, PERM_WRITE | PERM_READ, &ctx.char_handle[3]);
-
-	return ret;
-}
-
 static void sky_movement_timer_handler(void *p_context)
 {
 	switch (ctx.mode) {
@@ -176,7 +158,9 @@ static void sky_movement_timer_handler(void *p_context)
 		break;
 	case MODE_GOTO:
 	case MODE_MANUAL:
+	case MODE_OFF:
 		/* In GOTO and MANUAL mode RA motor is controlled by different routine. */
+		/* In OFF mode we still want to track position */
 		if (ctx.reverse)
 			ctx.pos[0] -= STEP_LENGTH;
 		else
@@ -303,6 +287,22 @@ static void set_mode(int mode)
 	ctx_set_mode(mode);
 }
 
+static void set_reverse(uint8_t reverse)
+{
+	if (ctx.reverse == reverse)
+		ctx.reverse = reverse;
+
+	if (reverse)
+		NRF_LOG_INFO("Setting reverse mode\r\n");
+	if (reverse)
+		NRF_LOG_INFO("Disabling reverse mode\r\n");
+
+	/* update direction pin */
+	if (ctx.mode == MODE_TRACKING) {
+		ra_set_dir(DIR_PROGRADE);
+	}
+}
+
 static void goto_timer_handler(void *p_context)
 {
 	int end = 1;
@@ -311,17 +311,18 @@ static void goto_timer_handler(void *p_context)
 	if (ctx.mode != MODE_GOTO)
 		return;
 
-	if (ctx.dest[0] - ctx.pos[0] > GOTO_ACCURACY) {
+	if (ctx.dest[0] > ctx.pos[0] + GOTO_ACCURACY) {
 		ra_set_dir(DIR_PROGRADE);
 		nrf_gpio_pin_toggle(RA_STEP);
 		ctx.pos[0] += FULL_STEP_LENGTH;
 		end = 0;
-	} else if (ctx.pos[0] - ctx.dest[0] > GOTO_ACCURACY) {
+	} else if (ctx.pos[0] > ctx.dest[0] + GOTO_ACCURACY) {
 		ra_set_dir(DIR_RETROGRADE);
 		nrf_gpio_pin_toggle(RA_STEP);
 		ctx.pos[0] -= FULL_STEP_LENGTH;
 		end = 0;
 	}
+	ctx.pos[0] %= ARC_MAX;
 
 	if (ctx.dest[1] - ctx.pos[1] > GOTO_ACCURACY) {
 		dec_set_dir(DIR_PROGRADE);
@@ -334,6 +335,7 @@ static void goto_timer_handler(void *p_context)
 		ctx.pos[1] -= FULL_STEP_LENGTH;
 		end = 0;
 	}
+	ctx.pos[1] %= ARC_MAX;
 
 	/* return to tracking mode */
 	if (end)
@@ -385,6 +387,77 @@ static int motor_init()
 	nrf_gpio_pin_dir_set(DEC_MS3, NRF_GPIO_PIN_DIR_OUTPUT);
 
 	ctx.mode = MODE_OFF;
+
+	return ret;
+}
+
+static void char_write_handler(uint16_t uuid, uint16_t len, uint16_t offset, uint8_t *data)
+{
+	switch (uuid) {
+	case UUID_POS:
+		if (offset + len > 2 * sizeof(*ctx.pos))
+			NRF_LOG_INFO("Trying to write too much data, ignoring\r\n");
+	
+		memcpy(ctx.pos + offset, data, len);
+		break;
+	case UUID_DEST:
+		if (offset + len > 2 * sizeof(*ctx.dest))
+			NRF_LOG_INFO("Trying to write too much data, ignoring\r\n");
+
+		memcpy(ctx.dest + offset, data, len);
+		break;
+	case UUID_MODE:
+		if (offset != 0 || len != sizeof(ctx.mode))
+			NRF_LOG_INFO("Trying to write too much data, ignoring\r\n");
+
+		set_mode(*data);
+		break;
+	case UUID_REVERSE:
+		if (offset != 0 || len != sizeof(ctx.reverse))
+			goto too_long;
+
+		set_reverse(*data);
+		break;
+	default:
+		break;
+	}
+
+	return;
+
+too_long:
+	NRF_LOG_INFO("Trying to write too much data, ignoring\r\n");
+}
+
+static int services_init()
+{
+	int ret;
+	ble_uuid_t uuid;
+
+	uuid.uuid = SERVICE_UUID;
+	ret = sd_ble_uuid_vs_add(&base_uuid, &uuid.type);
+	APP_ERROR_CHECK(ret);
+
+	ret = sd_ble_gatts_service_add(BLE_GATTS_SRVC_TYPE_PRIMARY,
+			&uuid, &ctx.service_handle);
+	APP_ERROR_CHECK(ret);
+
+/* TODO ERROR handling
+ * TODO UUID generalization*/
+
+
+	ret = eq_add_characteristic(ctx.service_handle, 2 * sizeof(uint32_t), (uint8_t *)ctx.pos[0],
+			UUID_POS, PERM_WRITE | PERM_READ, &ctx.char_handle[0]);
+
+	ret = eq_add_characteristic(ctx.service_handle, 2 * sizeof(uint32_t), (uint8_t *)ctx.dest,
+			UUID_DEST, PERM_WRITE | PERM_READ, &ctx.char_handle[1]);
+
+	ret = eq_add_characteristic(ctx.service_handle, sizeof(ctx.mode), (uint8_t *)&ctx.mode,
+			UUID_MODE, PERM_WRITE | PERM_READ, &ctx.char_handle[2]);
+
+	ret = eq_add_characteristic(ctx.service_handle, sizeof(ctx.reverse), (uint8_t *)&ctx.reverse,
+			UUID_REVERSE, PERM_WRITE | PERM_READ, &ctx.char_handle[3]);
+
+	set_write_handler(char_write_handler);
 
 	return ret;
 }
