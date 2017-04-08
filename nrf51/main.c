@@ -396,19 +396,19 @@ static void char_write_handler(uint16_t uuid, uint16_t len, uint16_t offset, uin
 	switch (uuid) {
 	case UUID_POS:
 		if (offset + len > 2 * sizeof(*ctx.pos))
-			NRF_LOG_INFO("Trying to write too much data, ignoring\r\n");
+			goto too_long;
 	
 		memcpy(ctx.pos + offset, data, len);
 		break;
 	case UUID_DEST:
 		if (offset + len > 2 * sizeof(*ctx.dest))
-			NRF_LOG_INFO("Trying to write too much data, ignoring\r\n");
+			goto too_long;
 
 		memcpy(ctx.dest + offset, data, len);
 		break;
 	case UUID_MODE:
 		if (offset != 0 || len != sizeof(ctx.mode))
-			NRF_LOG_INFO("Trying to write too much data, ignoring\r\n");
+			goto too_long;
 
 		set_mode(*data);
 		break;
@@ -441,10 +441,7 @@ static int services_init()
 			&uuid, &ctx.service_handle);
 	APP_ERROR_CHECK(ret);
 
-/* TODO ERROR handling
- * TODO UUID generalization*/
-
-
+/* TODO ERROR handling */
 	ret = eq_add_characteristic(ctx.service_handle, 2 * sizeof(uint32_t), (uint8_t *)ctx.pos[0],
 			UUID_POS, PERM_WRITE | PERM_READ, &ctx.char_handle[0]);
 
