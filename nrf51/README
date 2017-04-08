@@ -1,5 +1,3 @@
-This is a template for creating nrf5x projects.
-
 BUILDING
 Specify SDK root in Makefile, than execute make.
 Find Makefile.posix and Makefile.common in sdk directory, you may need to edit them.
@@ -13,3 +11,4 @@ To use the nrf modules do the following:
 
 FLASHING
 Just flash the .hex file with your favourite flashing tool.
+For openocd + buspirate configuration use 'make flash'
