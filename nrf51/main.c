@@ -1,3 +1,10 @@
+/* 
+ * TODO:
+ * set all dec pin in all modes
+ * Disable motors at OFF mode
+ * consider negative declination values
+ */
+
 #include "nrf.h"
 #include "nrf_gpio.h"
 #include "nrf_delay.h"
@@ -15,12 +22,15 @@
 #define SERVICE_UUID 0x1523
 #define MOTOR_STEP_RATIO 200
 #define MOTOR_MICROSTEPS 16
-#define GEAR_RATIO 130
+
+/* EQ3-2 settings, TODO: Export mount configuration */
+#define RA_GEAR_RATIO 130
+#define DEC_GEAR_RATIO 65
 #define STELLAR_DAY 86164
 #define GOTO_ACCURACY 60
 
-/* nuber of clock ticks per one motor step for tracking */
-#define STEP_TICKS (APP_TIMER_CLOCK_FREQ / MOTOR_MICROSTEPS) * (STELLAR_DAY / (MOTOR_STEP_RATIO * GEAR_RATIO))
+/* nuber of clock ticks per one motor step for tracking (1 arc sec of RA) */
+#define STEP_TICKS (APP_TIMER_CLOCK_FREQ / MOTOR_MICROSTEPS) * (STELLAR_DAY / (MOTOR_STEP_RATIO * RA_GEAR_RATIO))
 
 /* step time for goto */
 #define GOTO_STEP_MS 2
@@ -29,9 +39,12 @@
 #define MANUAL_STEP_MS 20
 
 #define ARC_MAX (360*60*60)
-/* length of single microstep in arc seconds */
-#define STEP_LENGTH (ARC_MAX)/(MOTOR_STEP_RATIO * GEAR_RATIO * MOTOR_MICROSTEPS)
-#define FULL_STEP_LENGTH (ARC_MAX)/(MOTOR_STEP_RATIO * GEAR_RATIO)
+
+#define RA_FULL_STEP_LENGTH (ARC_MAX)/(MOTOR_STEP_RATIO * RA_GEAR_RATIO)
+#define DEC_FULL_STEP_LENGTH (ARC_MAX)/(MOTOR_STEP_RATIO * DEC_GEAR_RATIO)
+
+#define RA_STEP_LENGTH (ARC_MAX)/(MOTOR_STEP_RATIO * RA_GEAR_RATIO * MOTOR_MICROSTEPS)
+#define DEC_STEP_LENGTH (ARC_MAX)/(MOTOR_STEP_RATIO * DEC_GEAR_RATIO * MOTOR_MICROSTEPS)
 
 enum {
 	MODE_TRACKING = 0x01,
@@ -55,12 +68,20 @@ enum {
 	UUID_REVERSE = 0x1528,
 };
 
+enum {
+	DIR_PROGRADE,
+	DIR_RETROGRADE,
+	DIR_OFF,
+};
+
 struct context {
 	uint16_t service_handle;
 	int32_t pos[2]; /**< position in acrseconds {RA, DEC} */
 	int32_t dest[2]; /**< destination in arcseconds {RA, DEC} */
 	uint8_t mode;
 	uint8_t reverse; /**< for simple reversing direction */
+
+	uint8_t direction[2]; /**< direction set to hardware, not exported */
 	ble_gatts_char_handles_t char_handle[CHAR_NUMBER];
 } ctx;
 
@@ -149,35 +170,6 @@ void timer_init()
 	nrf_gpio_pin_set(LED0);
 }
 
-static void sky_movement_timer_handler(void *p_context)
-{
-	switch (ctx.mode) {
-	case MODE_TRACKING:
-		/* direction was already set */
-		nrf_gpio_pin_toggle(RA_STEP);
-		break;
-	case MODE_GOTO:
-	case MODE_MANUAL:
-	case MODE_OFF:
-		/* In GOTO and MANUAL mode RA motor is controlled by different routine. */
-		/* In OFF mode we still want to track position */
-		if (ctx.reverse)
-			ctx.pos[0] -= STEP_LENGTH;
-		else
-			ctx.pos[0] += STEP_LENGTH;
-		break;
-	}
-
-	/** For now, update every tracking step */
-	ctx_update_pos();
-}
-
-enum {
-	DIR_PROGRADE,
-	DIR_RETROGRADE,
-	DIR_OFF,
-};
-
 static void ra_set_dir(int dir)
 {
 	/* disabled motor won't go in any direction */
@@ -188,6 +180,8 @@ static void ra_set_dir(int dir)
 		nrf_gpio_pin_set(RA_DIR);
 	else
 		nrf_gpio_pin_clear(RA_DIR);
+
+	ctx.direction[0] = dir;
 }
 
 static void dec_set_dir(int dir)
@@ -199,6 +193,8 @@ static void dec_set_dir(int dir)
 		nrf_gpio_pin_set(DEC_DIR);
 	else
 		nrf_gpio_pin_clear(DEC_DIR);
+
+	ctx.direction[1] = dir;
 }
 
 static void set_mode(int mode)
@@ -228,12 +224,12 @@ static void set_mode(int mode)
 		nrf_gpio_pin_set(RA_MS2);
 		nrf_gpio_pin_set(RA_MS3);
 
+		/* disable DEC motor, enable RA */
 		nrf_gpio_pin_clear(RA_EN);
-
-		/* disable DEC motor */
 		nrf_gpio_pin_set(DEC_EN);
 
 		ra_set_dir(DIR_PROGRADE);
+		dec_set_dir(DIR_OFF);
 
 		break;
 	case MODE_GOTO:
@@ -248,6 +244,8 @@ static void set_mode(int mode)
 		/* both motors enabled */
 		nrf_gpio_pin_clear(DEC_EN);
 		nrf_gpio_pin_clear(RA_EN);
+		
+		/* TODO integrate direction handling with ctx.direction */
 
 		ret = app_timer_start(goto_timer_id, APP_TIMER_TICKS(GOTO_STEP_MS, TIMER_PRESCALER), NULL);
 		APP_ERROR_CHECK(ret);
@@ -303,6 +301,29 @@ static void set_reverse(uint8_t reverse)
 	}
 }
 
+static void sky_movement_timer_handler(void *p_context)
+{
+	switch (ctx.mode) {
+	case MODE_TRACKING:
+		/* direction was already set */
+		nrf_gpio_pin_toggle(RA_STEP);
+		break;
+	case MODE_GOTO:
+	case MODE_MANUAL:
+	case MODE_OFF:
+		/* In GOTO and MANUAL mode RA motor is controlled by different routine. */
+		/* In OFF mode we still want to track position */
+		if (ctx.reverse)
+			ctx.pos[0] -= RA_STEP_LENGTH;
+		else
+			ctx.pos[0] += RA_STEP_LENGTH;
+		break;
+	}
+
+	/** For now, update every tracking step */
+	ctx_update_pos();
+}
+
 static void goto_timer_handler(void *p_context)
 {
 	int end = 1;
@@ -314,12 +335,12 @@ static void goto_timer_handler(void *p_context)
 	if (ctx.dest[0] > ctx.pos[0] + GOTO_ACCURACY) {
 		ra_set_dir(DIR_PROGRADE);
 		nrf_gpio_pin_toggle(RA_STEP);
-		ctx.pos[0] += FULL_STEP_LENGTH;
+		ctx.pos[0] += RA_FULL_STEP_LENGTH;
 		end = 0;
 	} else if (ctx.pos[0] > ctx.dest[0] + GOTO_ACCURACY) {
 		ra_set_dir(DIR_RETROGRADE);
 		nrf_gpio_pin_toggle(RA_STEP);
-		ctx.pos[0] -= FULL_STEP_LENGTH;
+		ctx.pos[0] -= RA_FULL_STEP_LENGTH;
 		end = 0;
 	}
 	ctx.pos[0] %= ARC_MAX;
@@ -327,12 +348,12 @@ static void goto_timer_handler(void *p_context)
 	if (ctx.dest[1] - ctx.pos[1] > GOTO_ACCURACY) {
 		dec_set_dir(DIR_PROGRADE);
 		nrf_gpio_pin_toggle(DEC_STEP);
-		ctx.pos[1] += FULL_STEP_LENGTH;
+		ctx.pos[1] += DEC_FULL_STEP_LENGTH;
 		end = 0;
 	} else if (ctx.pos[1] - ctx.dest[1] > GOTO_ACCURACY) {
 		dec_set_dir(DIR_RETROGRADE);
 		nrf_gpio_pin_toggle(DEC_STEP);
-		ctx.pos[1] -= FULL_STEP_LENGTH;
+		ctx.pos[1] -= DEC_FULL_STEP_LENGTH;
 		end = 0;
 	}
 	ctx.pos[1] %= ARC_MAX;
@@ -350,6 +371,30 @@ static void manual_timer_handler(void *p_context)
 	/* direction control is handled elsewhere */
 	nrf_gpio_pin_toggle(DEC_STEP);
 	nrf_gpio_pin_toggle(RA_STEP);
+
+	switch (ctx.direction[0]) {
+	case DIR_PROGRADE:
+		ctx.pos[0] += RA_STEP_LENGTH;
+		break;
+	case DIR_RETROGRADE:
+		ctx.pos[0] -= RA_STEP_LENGTH;
+		break;
+	case DIR_OFF:
+		break;
+	}
+	ctx.pos[0] %= ARC_MAX;
+
+	switch (ctx.direction[1]) {
+	case DIR_PROGRADE:
+		ctx.pos[1] += DEC_STEP_LENGTH;
+		break;
+	case DIR_RETROGRADE:
+		ctx.pos[1] -= DEC_STEP_LENGTH;
+		break;
+	case DIR_OFF:
+		break;
+	}
+	ctx.pos[1] %= ARC_MAX;
 }
 
 static int motor_init()
