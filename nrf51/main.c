@@ -1,8 +1,5 @@
 /* 
  * TODO:
- * set all dec pin in all modes
- * Disable motors at OFF mode
- * consider negative declination values
  */
 
 #include "nrf.h"
@@ -274,6 +271,10 @@ static void set_mode(int mode)
 		APP_ERROR_CHECK(ret);
 		break;
 	case MODE_OFF:
+		/* disable both motors */
+		nrf_gpio_pin_set(DEC_EN);
+		nrf_gpio_pin_set(RA_EN);
+
 		NRF_LOG_INFO("\r\nGoing into OFF mode.\r\n")
 		break;
 	default:
@@ -431,7 +432,7 @@ static int motor_init()
 	nrf_gpio_pin_dir_set(DEC_MS2, NRF_GPIO_PIN_DIR_OUTPUT);
 	nrf_gpio_pin_dir_set(DEC_MS3, NRF_GPIO_PIN_DIR_OUTPUT);
 
-	ctx.mode = MODE_OFF;
+	ctx_set_mode(MODE_OFF);
 
 	return ret;
 }
@@ -527,14 +528,12 @@ int main(void)
 
 	NRF_LOG_INFO("\r\nInitializing motors...\r\n")
 	motor_init();	
-	set_mode(MODE_TRACKING);
 
 	/* Starting bluetooth service */
 	ret = ble_advertising_start(BLE_ADV_MODE_FAST);
 	APP_ERROR_CHECK(ret);
 
-	/* Indicate the setup was successfull */
-	nrf_gpio_pin_set(LED_PIN);
+	set_mode(MODE_TRACKING);
 
 	NRF_LOG_INFO("\r\nInitialization completed\r\n")
 
