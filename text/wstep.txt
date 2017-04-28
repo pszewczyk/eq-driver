@@ -1,0 +1,141 @@
+WPROWADZENIE DO ASTROFOTOGRAFII
+
+Astrofotografia to specyficzna dziedzina fotografii. Dla pełnego zrozumienia
+istoty przedstawionych w dalszej części tej pracy rozwiązań, niezbędne jest
+szersze wprowadzenie do jej problematyki. Fotografując nocne niebo napotkamy
+kilka kluczowych problemów, które czynią astrofotografię niełatwą dziedziną.
+
+Pierwszym z tych problemów jest niewielka jasność większości interesujących
+obiektów na niebie. Od tej reguły są oczywiście wyjątki takie jak planety,
+księżyc czy słońce. Jednak olbrzymią część interesujących obiektów stanowią tzw.
+obiekty głębokiego nieba, czyli m.in. galaktyki, mgławice oraz gromady gwiazd.
+Większość z nich jest na tyle ciemna, że niedostrzegalna gołym okiem nawet
+w najbardziej korzystnych warunkach. Dlatego używane w astrofotografii sensory
+światła [matryce] muszą być bardzo czułe, a czasy naświetlania zdjęć dużo
+większe niż w klasycznej fotografii.
+
+Kolejnym problemem są niewielkie rozmiary kątowe fotografowanych obiektów. Tu
+też są wyjątki, przykładowo droga mleczna, która zajmuje praktycznie całe nasze
+niebo. Jest jednak wiele interesujących obiektów, których rozmiary kątowe
+liczymy w minutach kątowych [1/60 stopnia]. Do robienia takich zdjęć nie
+wystarczy zwykły obiektyw, potrzebne są większe i bardziej zaawansowane układy
+optyczne o większych ogniskowych.
+
+Ważny jest też fakt, że niebo, które fotografujemy, porusza się stale względem
+nas. Ten pozorny dobowy ruch wszystkich ciał niebieskich wynika z ruchu
+obrotowego ziemi, podobnie jak ruch słońca. Prędkość tego ruchu jest stała
+i wynosi dokładnie jeden obrót na dobę [gwiazdową]. O ile w klasycznej
+fotografii taka prędkość nie stanowi problemu, to w fotografii nieba, biorąc pod
+uwagę potrzebę długich czasów naświetlania, jest to istotny problem. Zrobienie
+udanego zdjęcia wymaga, aby obiekt nie poruszał się przez czas naświetlania.
+Biorąc dodatkowo pod uwagę długie ogniskowe teleskopu problem efektywnego
+śledzenia ruchu ciał niebieskich okazuje się kluczowy w astrofotografii.
+
+WSPÓŁRZĘDNE SFERYCZNE
+
+Rozpatrując zdjęcia nieba, pozycje i ruchy ciał niebieskich będziemy poruszali
+się na *sferze niebieskiej*. Sfera niebieska to pojęcie abstrakcyjne oznaczające
+sferę o dowolnym promieniu i o środku w miejscu obserwacji. Półprosta
+poprowadzona z miejsca obserwacji, przecinająca dany obiekt, przecina sferę
+niebieską w punkcie zwanym *położeniem* tego obiektu na sferze niebieskiej.
+
+Promień sfery niebieskiej nie ma dla nas znaczenia jako dla obserwatorów.
+Interesuje nas jedynie położenie na sferze. Dobrą analogią do tej sytuacji jest
+określanie położenia na kuli ziemskiej za pomocą współrzędnych geograficznych:
+długości i szerokości. Podobnie będziemy określali współrzędne na sferze
+niebieskiej - za pomocą analogicznych dwóch miar kątów. Jedynym co musimy
+ustalić jest położenie biegunów i środek układu współrzędnych.
+
+W tej pracy korzystać będziemy z układu *równikowego*. Bieguny znajdują się
+w nim w punktach przecięcia osi obrotu ziemi ze sferą niebieską. Daje to tę
+podstawową zaletę, że ciała niebieskie mają niezmienną odległość od tych
+punktów, więc w ciągu ich dobowego ruchu po sferze niebieskiej jedna ze
+współrzędnych (odpowiadająca szerokości geograficznej) będzie niezmienna. Ta
+współrzędna to *deklinacja*.
+
+Podobnie jak w układzie współrzędnych geograficznych, na sferze niebieskiej
+możemy wyznaczyć koło wielkie będące równikiem niebieskim.
+
+Ustalenie drugiej współrzędnej wymaga wybrania południka zerowego na niebie
+(odpowiednika południka w układzie współrzędnych geograficznych). Istnieją dwa
+rodzaje układu współrzędnych tego typu, tj. układu współrzędnych równikowych.
+Pierwszy z nich, układ równikowy godzinny, za południk zerowy obiera południk
+lokalny, czyli południk przechodzący przez zenit. Odpowiednikiem długości
+geograficznej jest w nim *kąt godzinny*. W ciągu dobowego ruchu sfery
+niebieskiej południk lokalny jest niezmienny względem obserwatora, ale
+zmieniają się kąty godzinne ciał niebieskich. W drugim układzie współrzędnych,
+równikowym równonocnym, południk zerowy przebiega przez punkt równonocy
+wiosennej. Odpowiednikiem długości geograficznej jest w nim *rektascensja*,
+która jest stała i niezależna od miejsca obserwacji. Układ równikowy
+równonocny jest stosowany w atlasach nieba do określania pozycji ciał
+niebieskich.
+
+MONTAŻE ASTRONOMICZNE
+
+W astronomii obserwacyjnej instrumenty obserwacyjne korzystają z dwóch typów
+montaży: azymutalnego i paralaktycznego. Montaż azymutalny jest prostszy
+w konstrukcji i w użyciu, korzysta bowiem z naturalnego układu współrzędnych
+horyzontalnych. Takie montaże są jednak mało praktyczne w astrofotografii.
+Montaż paralaktyczny jest natomiast bardzo użyteczny w fotografowaniu nieba,
+ponieważ porusza się w opisanym wyżej układzie równikowym. Oznacza to, że do
+śledzenia ruchu fotografowanych obiektów wystarczy zmiana w tylko jednej osi. 
+
+Takie montaże to zazwyczaj bardzo precyzyjne urządzenia. Załóżmy parametry
+typowe dla amatorskiego zestawu do astrofotografii: ogniskowa teleskopu 750mm
+i matryca lustrzanki cyfrowej o rozmiarach 22.2mm x 14.8mm. Zdjęcie będzie
+wtedy obejmowało obszar na niebie o kątowych rozmiarach:
+
+2*atan(d/2f)
+
+Czyli 1,7 x 1,3 stopnia. Zakładając rozdzielczość finalnego zdjęcia rzędu
+1000px, każdy piksel ma rozmiar rzędu kilku sekund kątowych. Każde
+przesunięcie o 10'' jest widoczne na takim zdjęciu.
+
+Aby uzyskać żądaną dokładność montaże astronomiczne zawierają wbudowane
+przekładnie umożliwiające bardzo niewielkie przesunięcia, rzędu sekund
+kątowych lub mniejsze. Ręczna korekcja pozycji na bieżąco jest oczywiście
+niedokładna i wyjątkowo męcząca, biorąc pod uwagę czasy ekspozycji zdjęć.
+Dlatego montaże wyposaża się w silniki. W najprostszym scenariuszu wystarcza
+jeden silnik obracający montażem w jednej osi (osi kąta godzinnego) ze stałą
+prędkością.
+
+GOTO
+
+Jednym z kolejnych praktycznych problemów przy wykonywaniu zdjęć niewielkich
+obiektów głębokiego nieba jest ich wyszukiwanie na niebie. Można robić to
+ręcznie naprowadzając oś optyczną teleskopu na wybrany punkt na niebie np.
+z pomocą niewielkiej lunety dołączanej do głównego teleskopu (tzw. szukacz).
+Kiedy jednak do głównego teleskopu dołączona jest kamera, trudno jest użyć go
+do potwierdzenia, że ustawiliśmy układ poprawnie. Ciężko jest tu zastosować
+techniki znane z obserwacji wizualnych. Ręczne ustawianie teleskopu wymaga
+w takiej sytuacji wiele doświadczenia i dobrej znajomości nieba, a zajmuje
+dużo cennego czasu, który moglibyśmy poświęcić na ekspozycję zdjęcia.
+
+Rozwiązaniem tego problemu jest system GoTo. Korzysta on z napędu w obu osiach
+montażu do ustawiania go w żądanej pozycji. Po szybkiej kalibracji na jasnych
+obiektach (np. gwiazdach) system jest gotowy do użycia.
+
+GUIDING
+
+Ostatnim usprawnieniem, o jakim będę wspomniał w tej pracy jest tzw. guiding.
+Rozwiązuje on problem dokładnego śledzenia obiektów, jednak w bardziej
+wyrafinowany sposób niż sterowanie napędem w jednej osi. Teoretycznie powinien
+on działać wystarczająco dobrze, na drodze stają nam jednak dwa problemy:
+niedokładne wykonanie przekładni i niedokładne ustawienie montażu. Pierwszy
+problem powoduje efekt niejednostajnego ruchu montażu pomimo jednostajnego
+obrotu śruby mikro ruchów. Drugi problem zależy od wprawy użytkownika montażu,
+który przed użyciem musi ustawić jego oś dokładnie tak, aby przebiegała przez
+biegun niebieski. W praktyce to ustawienie nigdy nie jest idealne i po
+odpowiednio długim czasie śledzenia następuje widoczne przesunięcie w osi
+deklinacji.
+
+Systemy guidingu polegają na zastosowaniu drugiego, mniejszego teleskopu
+z czułą kamerą, przymocowanego do głównego teleskopu, do rejestrowania obrazu
+nieba w czasie rzeczywistym. Ten obraz jest na bieżąco analizowany pod kątem
+przesunięć, które są później korygowane przez odpowiedni moduł elektroniczny.
+
+W praktyce za analizę obrazu i korekcję ruchu odpowiada zewnętrzny komputer,
+sterownik teleskopu ma jedynie za zadanie umożliwić wprowadzenie takich
+korekcji z zewnątrz.
+
+ZAŁOŻENIA PROJEKTU
