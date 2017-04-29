@@ -4,6 +4,8 @@
 
 #include "nrf.h"
 #include "nrf_gpio.h"
+#include "nrf_gpiote.h"
+#include "nrf_drv_gpiote.h"
 #include "nrf_delay.h"
 #include "app_timer.h"
 #include "app_uart.h"
@@ -42,6 +44,12 @@
 
 #define RA_STEP_LENGTH (ARC_MAX)/(MOTOR_STEP_RATIO * RA_GEAR_RATIO * MOTOR_MICROSTEPS)
 #define DEC_STEP_LENGTH (ARC_MAX)/(MOTOR_STEP_RATIO * DEC_GEAR_RATIO * MOTOR_MICROSTEPS)
+
+#define EQ_ERROR_CHECK(ret) do { \
+	if (ret) \
+		NRF_LOG_INFO("ERROR %d: ret = 0x%x\n\r", __LINE__, ret); \
+	APP_ERROR_CHECK(ret); \
+} while(0)
 
 enum {
 	MODE_TRACKING = 0x01,
@@ -94,7 +102,7 @@ void ctx_set_mode(uint8_t mode)
 	ctx.mode = mode;
 	ret = eq_set_characteristic_value(ctx.char_handle[CHAR_MODE].value_handle,
 			sizeof(ctx.mode), &ctx.mode);
-	APP_ERROR_CHECK(ret);
+	EQ_ERROR_CHECK(ret);
 }
 
 void ctx_set_reverse(uint8_t reverse)
@@ -104,7 +112,7 @@ void ctx_set_reverse(uint8_t reverse)
 	ctx.reverse = reverse;
 	ret = eq_set_characteristic_value(ctx.char_handle[CHAR_REVERSE].value_handle,
 			sizeof(ctx.reverse), &ctx.reverse);
-	APP_ERROR_CHECK(ret);
+	EQ_ERROR_CHECK(ret);
 }
 
 void ctx_set_pos(uint32_t ra, uint32_t dec)
@@ -115,7 +123,7 @@ void ctx_set_pos(uint32_t ra, uint32_t dec)
 	ctx.pos[1] = dec;
 	ret = eq_set_characteristic_value(ctx.char_handle[CHAR_POS].value_handle,
 			2 * sizeof(uint32_t), (uint8_t *)ctx.pos);
-	APP_ERROR_CHECK(ret);
+	EQ_ERROR_CHECK(ret);
 }
 
 void ctx_set_dest(uint32_t dest_ra, uint32_t dest_dec)
@@ -126,7 +134,7 @@ void ctx_set_dest(uint32_t dest_ra, uint32_t dest_dec)
 	ctx.dest[1] = dest_dec;
 	ret = eq_set_characteristic_value(ctx.char_handle[CHAR_DEST].value_handle,
 			2 * sizeof(uint32_t), (uint8_t *)ctx.dest);
-	APP_ERROR_CHECK(ret);
+	EQ_ERROR_CHECK(ret);
 }
 
 /* position will be changed dynamically, consider not updating BLE stack every time it changes */
@@ -136,11 +144,7 @@ void ctx_update_pos()
 
 	ret = eq_set_characteristic_value(ctx.char_handle[CHAR_POS].value_handle,
 			2 * sizeof(uint32_t), (uint8_t *)ctx.pos);
-	APP_ERROR_CHECK(ret);
-
-	NRF_LOG_INFO("position = [%d %d'%d'', %d %d'%d'']\r\n",
-			ctx.pos[0]/3600, (ctx.pos[0] % 3600)/60, ctx.pos[0] % 60,
-			ctx.pos[1]/3600, (ctx.pos[1] % 3600)/60, ctx.pos[1] % 60)
+	EQ_ERROR_CHECK(ret);
 }
 
 void app_error_fault_handler(uint32_t id, uint32_t pc, uint32_t info)
@@ -159,10 +163,10 @@ void timer_init()
 	uint32_t ret;
 
 	ret = app_timer_create(&led_timer_id, APP_TIMER_MODE_REPEATED, led_timer_handler);
-	APP_ERROR_CHECK(ret);
+	EQ_ERROR_CHECK(ret);
 
 	ret = app_timer_start(led_timer_id, APP_TIMER_TICKS(500, TIMER_PRESCALER), NULL);
-	APP_ERROR_CHECK(ret);
+	EQ_ERROR_CHECK(ret);
 
 	nrf_gpio_pin_set(LED0);
 }
@@ -245,7 +249,7 @@ static void set_mode(int mode)
 		/* TODO integrate direction handling with ctx.direction */
 
 		ret = app_timer_start(goto_timer_id, APP_TIMER_TICKS(GOTO_STEP_MS, TIMER_PRESCALER), NULL);
-		APP_ERROR_CHECK(ret);
+		EQ_ERROR_CHECK(ret);
 		break;
 	case MODE_MANUAL:
 		NRF_LOG_INFO("\r\nGoing into MANUAL mode.\r\n")
@@ -262,13 +266,9 @@ static void set_mode(int mode)
 		nrf_gpio_pin_clear(DEC_EN);
 		nrf_gpio_pin_clear(RA_EN);
 
-		/* start with no direction */
-		ra_set_dir(DIR_OFF);
-		dec_set_dir(DIR_OFF);
-
 		/* TODO Adjustable speed */
 		ret = app_timer_start(manual_timer_id, APP_TIMER_TICKS(MANUAL_STEP_MS, TIMER_PRESCALER), NULL);
-		APP_ERROR_CHECK(ret);
+		EQ_ERROR_CHECK(ret);
 		break;
 	case MODE_OFF:
 		/* disable both motors */
@@ -370,8 +370,8 @@ static void manual_timer_handler(void *p_context)
 		return;
 
 	/* direction control is handled elsewhere */
-	nrf_gpio_pin_toggle(DEC_STEP);
 	nrf_gpio_pin_toggle(RA_STEP);
+	nrf_gpio_pin_toggle(DEC_STEP);
 
 	switch (ctx.direction[0]) {
 	case DIR_PROGRADE:
@@ -405,18 +405,18 @@ static int motor_init()
 	/* sky moves always and this timer is always active */
 	ret = app_timer_create(&sky_movement_timer_id, APP_TIMER_MODE_REPEATED,
 			sky_movement_timer_handler);
-	APP_ERROR_CHECK(ret);
+	EQ_ERROR_CHECK(ret);
 
 	ret = app_timer_start(sky_movement_timer_id, STEP_TICKS, NULL);
-	APP_ERROR_CHECK(ret);
+	EQ_ERROR_CHECK(ret);
 
 	ret = app_timer_create(&goto_timer_id, APP_TIMER_MODE_REPEATED,
 			goto_timer_handler);
-	APP_ERROR_CHECK(ret);
+	EQ_ERROR_CHECK(ret);
 
 	ret = app_timer_create(&manual_timer_id, APP_TIMER_MODE_REPEATED,
 			manual_timer_handler);
-	APP_ERROR_CHECK(ret);
+	EQ_ERROR_CHECK(ret);
 
 	nrf_gpio_pin_dir_set(RA_EN, NRF_GPIO_PIN_DIR_OUTPUT);
 	nrf_gpio_pin_dir_set(RA_DIR, NRF_GPIO_PIN_DIR_OUTPUT);
@@ -481,11 +481,11 @@ static int services_init()
 
 	uuid.uuid = SERVICE_UUID;
 	ret = sd_ble_uuid_vs_add(&base_uuid, &uuid.type);
-	APP_ERROR_CHECK(ret);
+	EQ_ERROR_CHECK(ret);
 
 	ret = sd_ble_gatts_service_add(BLE_GATTS_SRVC_TYPE_PRIMARY,
 			&uuid, &ctx.service_handle);
-	APP_ERROR_CHECK(ret);
+	EQ_ERROR_CHECK(ret);
 
 /* TODO ERROR handling */
 	ret = eq_add_characteristic(ctx.service_handle, 2 * sizeof(uint32_t), (uint8_t *)ctx.pos[0],
@@ -505,21 +505,73 @@ static int services_init()
 	return ret;
 }
 
+void manual_button_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action)
+{
+	static int b1 = 0, b2 = 0;
+
+	switch (pin) {
+	case KEY1:
+		b1 = !b1;
+		break;
+	case KEY2:
+		b2 = !b2;
+		break;
+	default:
+		NRF_LOG_INFO("Unhandled button event on pin %d\n\r", pin);
+		return;
+	}
+
+	NRF_LOG_INFO("Button input pin %d action %d\n\r", pin, action);
+
+	if (b1 ^ b2) {
+		set_mode(MODE_MANUAL);
+		if (b1)
+			ra_set_dir(DIR_PROGRADE);
+		else
+			ra_set_dir(DIR_RETROGRADE);
+		nrf_gpio_pin_set(LED1);
+	} else {
+		nrf_gpio_pin_clear(LED1);
+		set_mode(MODE_TRACKING);
+	}
+}
+
+void buttons_init()
+{
+	int ret;
+
+	nrf_drv_gpiote_in_config_t config = GPIOTE_CONFIG_IN_SENSE_TOGGLE(1);
+	config.pull = NRF_GPIO_PIN_PULLUP;
+	ret = nrf_drv_gpiote_in_init(KEY1, &config, manual_button_handler);
+	EQ_ERROR_CHECK(ret);
+	ret = nrf_drv_gpiote_in_init(KEY2, &config, manual_button_handler);
+	EQ_ERROR_CHECK(ret);
+
+	nrf_drv_gpiote_in_event_enable(KEY1, true);
+	nrf_drv_gpiote_in_event_enable(KEY2, true);
+}
+
 int main(void)
 {
 	int ret;
 
 	ret = NRF_LOG_INIT(NULL);
-	APP_ERROR_CHECK(ret);
+	EQ_ERROR_CHECK(ret);
+
+	ret = nrf_drv_gpiote_init();
+	EQ_ERROR_CHECK(ret);
 
 	NRF_LOG_INFO("\r\nInitializing...\r\n")
 	/* Need to start the timer module */
 	APP_TIMER_INIT(TIMER_PRESCALER, TIMER_OP_QUEUE_SIZE, 0);
     	ret = bsp_init(BSP_INIT_LED, APP_TIMER_TICKS(100, TIMER_PRESCALER), NULL);
-	APP_ERROR_CHECK(ret);
+	EQ_ERROR_CHECK(ret);
 
 	nrf_gpio_pin_dir_set(LED_PIN, NRF_GPIO_PIN_DIR_OUTPUT);
 	nrf_gpio_pin_dir_set(LED0, NRF_GPIO_PIN_DIR_OUTPUT);
+	nrf_gpio_pin_dir_set(LED1, NRF_GPIO_PIN_DIR_OUTPUT);
+	nrf_gpio_pin_dir_set(KEY1, NRF_GPIO_PIN_DIR_INPUT);
+	nrf_gpio_pin_dir_set(KEY2, NRF_GPIO_PIN_DIR_INPUT);
 	NRF_LOG_INFO("\r\nInitializing BLE...\r\n")
 	ble_init();
 	services_init();
@@ -527,11 +579,12 @@ int main(void)
 	timer_init();
 
 	NRF_LOG_INFO("\r\nInitializing motors...\r\n")
-	motor_init();	
+	motor_init();
+	buttons_init();
 
 	/* Starting bluetooth service */
 	ret = ble_advertising_start(BLE_ADV_MODE_FAST);
-	APP_ERROR_CHECK(ret);
+	EQ_ERROR_CHECK(ret);
 
 	set_mode(MODE_TRACKING);
 

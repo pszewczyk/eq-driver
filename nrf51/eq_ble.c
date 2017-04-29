@@ -42,7 +42,7 @@ static ble_gap_conn_sec_mode_t sec_mode = {
 	.lv = 1
 };
 
-static uint16_t conn_handle;
+static uint16_t conn_handle = BLE_CONN_HANDLE_INVALID;
 
 ble_uuid128_t base_uuid = {
 	{
