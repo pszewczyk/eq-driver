@@ -132,10 +132,9 @@ deklinacji.
 Systemy guidingu polegają na zastosowaniu drugiego, mniejszego teleskopu
 z czułą kamerą, przymocowanego do głównego teleskopu, do rejestrowania obrazu
 nieba w czasie rzeczywistym. Ten obraz jest na bieżąco analizowany pod kątem
-przesunięć, które są później korygowane przez odpowiedni moduł elektroniczny.
+niepożądanych przesunięć, które są później korygowane przez odpowiedni moduł
+elektroniczny.
 
-W praktyce za analizę obrazu i korekcję ruchu odpowiada zewnętrzny komputer,
-sterownik teleskopu ma jedynie za zadanie umożliwić wprowadzenie takich
-korekcji z zewnątrz.
-
-ZAŁOŻENIA PROJEKTU
+W praktyce za analizę obrazu i korekcję ruchu odpowiada zazwyczaj zewnętrzny
+komputer, sterownik teleskopu ma jedynie za zadanie umożliwić wprowadzenie
+takich korekcji z zewnątrz.
