@@ -39,6 +39,11 @@
 
 #define ARC_MAX (360*60*60)
 
+#define RA_MAX (360*60*60)
+#define RA_MIN 0
+#define DEC_MAX (90*60*60)
+#define DEC_MIN -(90*60*60)
+
 #define RA_FULL_STEP_LENGTH (ARC_MAX)/(MOTOR_STEP_RATIO * RA_GEAR_RATIO)
 #define DEC_FULL_STEP_LENGTH (ARC_MAX)/(MOTOR_STEP_RATIO * DEC_GEAR_RATIO)
 
@@ -87,6 +92,7 @@ struct context {
 	uint8_t reverse; /**< for simple reversing direction */
 
 	uint8_t direction[2]; /**< direction set to hardware, not exported */
+	int32_t goto_diff[2];
 	ble_gatts_char_handles_t char_handle[CHAR_NUMBER];
 } ctx;
 
@@ -246,7 +252,16 @@ static void set_mode(int mode)
 		nrf_gpio_pin_clear(DEC_EN);
 		nrf_gpio_pin_clear(RA_EN);
 		
-		/* TODO integrate direction handling with ctx.direction */
+		ctx.goto_diff[0] = ctx.dest[0] - ctx.pos[0];
+		if (ctx.goto_diff[0] > RA_MAX/2)
+			ctx.goto_diff[0] -= RA_MAX;
+		if (ctx.goto_diff[0] < -RA_MAX/2)
+			ctx.goto_diff[0] += RA_MAX;
+		/* declination is non-cyclic */
+		ctx.goto_diff[1] = ctx.dest[1] - ctx.pos[1];
+
+		ra_set_dir(ctx.goto_diff[0] < 0 ? DIR_PROGRADE : DIR_RETROGRADE);
+		dec_set_dir(ctx.goto_diff[1] < 0 ? DIR_PROGRADE : DIR_RETROGRADE);
 
 		ret = app_timer_start(goto_timer_id, APP_TIMER_TICKS(GOTO_STEP_MS, TIMER_PRESCALER), NULL);
 		EQ_ERROR_CHECK(ret);
@@ -333,31 +348,26 @@ static void goto_timer_handler(void *p_context)
 	if (ctx.mode != MODE_GOTO)
 		return;
 
-	if (ctx.dest[0] > ctx.pos[0] + GOTO_ACCURACY) {
-		ra_set_dir(DIR_PROGRADE);
+	if (ctx.goto_diff[0] < -GOTO_ACCURACY) {
 		nrf_gpio_pin_toggle(RA_STEP);
 		ctx.pos[0] += RA_FULL_STEP_LENGTH;
 		end = 0;
-	} else if (ctx.pos[0] > ctx.dest[0] + GOTO_ACCURACY) {
-		ra_set_dir(DIR_RETROGRADE);
+	} else if (ctx.goto_diff[0] > GOTO_ACCURACY) {
 		nrf_gpio_pin_toggle(RA_STEP);
 		ctx.pos[0] -= RA_FULL_STEP_LENGTH;
 		end = 0;
 	}
-	ctx.pos[0] %= ARC_MAX;
+	ctx.pos[0] %= RA_MAX;
 
-	if (ctx.dest[1] - ctx.pos[1] > GOTO_ACCURACY) {
-		dec_set_dir(DIR_PROGRADE);
+	if (ctx.goto_diff[1] < -GOTO_ACCURACY) {
 		nrf_gpio_pin_toggle(DEC_STEP);
 		ctx.pos[1] += DEC_FULL_STEP_LENGTH;
 		end = 0;
-	} else if (ctx.pos[1] - ctx.dest[1] > GOTO_ACCURACY) {
-		dec_set_dir(DIR_RETROGRADE);
+	} else if (ctx.goto_diff[1] > GOTO_ACCURACY) {
 		nrf_gpio_pin_toggle(DEC_STEP);
 		ctx.pos[1] -= DEC_FULL_STEP_LENGTH;
 		end = 0;
 	}
-	ctx.pos[1] %= ARC_MAX;
 
 	/* return to tracking mode */
 	if (end)
@@ -437,6 +447,17 @@ static int motor_init()
 	return ret;
 }
 
+/** Out of bounds dimensions mapping */
+static inline void fix_oob_dimension(int32_t d[2])
+{
+		d[0] %= RA_MAX;
+		/* RA should always be positive */
+		if (d[0] < 0)
+			d[0] += RA_MAX;
+
+		d[1] %= DEC_MAX;
+}
+
 static void char_write_handler(uint16_t uuid, uint16_t len, uint16_t offset, uint8_t *data)
 {
 	switch (uuid) {
@@ -445,12 +466,14 @@ static void char_write_handler(uint16_t uuid, uint16_t len, uint16_t offset, uin
 			goto too_long;
 	
 		memcpy(ctx.pos + offset, data, len);
+		fix_oob_dimension(ctx.pos);
 		break;
 	case UUID_DEST:
 		if (offset + len > 2 * sizeof(*ctx.dest))
 			goto too_long;
 
 		memcpy(ctx.dest + offset, data, len);
+		fix_oob_dimension(ctx.dest);
 		break;
 	case UUID_MODE:
 		if (offset != 0 || len != sizeof(ctx.mode))
