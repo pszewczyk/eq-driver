@@ -1,4 +1,4 @@
-WPROWADZENIE DO ASTROFOTOGRAFII
+\section{Wprowadzenie do astrofotografii}
 
 Astrofotografia to specyficzna dziedzina fotografii. Dla pełnego zrozumienia
 istoty przedstawionych w dalszej części tej pracy rozwiązań, niezbędne jest
@@ -11,33 +11,40 @@ księżyc czy słońce. Jednak olbrzymią część interesujących obiektów sta
 obiekty głębokiego nieba, czyli m.in. galaktyki, mgławice oraz gromady gwiazd.
 Większość z nich jest na tyle ciemna, że niedostrzegalna gołym okiem nawet
 w najbardziej korzystnych warunkach. Dlatego używane w astrofotografii sensory
-światła [matryce] muszą być bardzo czułe, a czasy naświetlania zdjęć dużo
-większe niż w klasycznej fotografii.
+światła muszą być bardzo czułe, a czasy naświetlania zdjęć dużo większe niż
+w klasycznej fotografii.
 
 Kolejnym problemem są niewielkie rozmiary kątowe fotografowanych obiektów. Tu
 też są wyjątki, przykładowo droga mleczna, która zajmuje praktycznie całe nasze
 niebo. Jest jednak wiele interesujących obiektów, których rozmiary kątowe
-liczymy w minutach kątowych [1/60 stopnia]. Do robienia takich zdjęć nie
-wystarczy zwykły obiektyw, potrzebne są większe i bardziej zaawansowane układy
-optyczne o większych ogniskowych.
+liczymy w minutach kątowych\footnote{Minuta kątowa - 1/60 stopnia}. Do robienia
+takich zdjęć nie wystarczy zwykły obiektyw, potrzebne są większe i bardziej
+zaawansowane układy optyczne o większych ogniskowych.
 
 Ważny jest też fakt, że niebo, które fotografujemy, porusza się stale względem
 nas. Ten pozorny dobowy ruch wszystkich ciał niebieskich wynika z ruchu
 obrotowego ziemi, podobnie jak ruch słońca. Prędkość tego ruchu jest stała
-i wynosi dokładnie jeden obrót na dobę [gwiazdową]. O ile w klasycznej
+i wynosi dokładnie jeden obrót na dobę gwiazdową\footnote{Doba gwiazdowa - okres
+obrotu ziemi wokół własnej osi, wynoszący ok 86164s}.  O ile w klasycznej
 fotografii taka prędkość nie stanowi problemu, to w fotografii nieba, biorąc pod
 uwagę potrzebę długich czasów naświetlania, jest to istotny problem. Zrobienie
 udanego zdjęcia wymaga, aby obiekt nie poruszał się przez czas naświetlania.
 Biorąc dodatkowo pod uwagę długie ogniskowe teleskopu problem efektywnego
 śledzenia ruchu ciał niebieskich okazuje się kluczowy w astrofotografii.
 
-WSPÓŁRZĘDNE SFERYCZNE
+\section{Współrzędne sferyczne}
 
-Rozpatrując zdjęcia nieba, pozycje i ruchy ciał niebieskich będziemy poruszali
-się na *sferze niebieskiej*. Sfera niebieska to pojęcie abstrakcyjne oznaczające
-sferę o dowolnym promieniu i o środku w miejscu obserwacji. Półprosta
+\begin{figure}
+\label{fig_sfera}
+\includesvg{sfera.svg}
+\caption{Współrzędne na sferze niebieskiej}
+\end{figure}
+
+Rozpatrując pozycje i ruchy ciał niebieskich będziemy poruszali się na
+\emph{sferze niebieskiej}. Sfera niebieska to pojęcie abstrakcyjne oznaczające
+sferę o dowolnym promieniu i o środku w miejscu obserwacji.  Półprosta
 poprowadzona z miejsca obserwacji, przecinająca dany obiekt, przecina sferę
-niebieską w punkcie zwanym *położeniem* tego obiektu na sferze niebieskiej.
+niebieską w punkcie zwanym \emph{położeniem} tego obiektu na sferze niebieskiej.
 
 Promień sfery niebieskiej nie ma dla nas znaczenia jako dla obserwatorów.
 Interesuje nas jedynie położenie na sferze. Dobrą analogią do tej sytuacji jest
@@ -46,31 +53,38 @@ długości i szerokości. Podobnie będziemy określali współrzędne na sferze
 niebieskiej - za pomocą analogicznych dwóch miar kątów. Jedynym co musimy
 ustalić jest położenie biegunów i środek układu współrzędnych.
 
-W tej pracy korzystać będziemy z układu *równikowego*. Bieguny znajdują się
-w nim w punktach przecięcia osi obrotu ziemi ze sferą niebieską. Daje to tę
-podstawową zaletę, że ciała niebieskie mają niezmienną odległość od tych
-punktów, więc w ciągu ich dobowego ruchu po sferze niebieskiej jedna ze
+W tej pracy korzystać będziemy głównie z układu \emph{równikowego}. Bieguny
+znajdują się w nim w punktach przecięcia osi obrotu ziemi ze sferą niebieską.
+Daje to tę podstawową zaletę, że ciała niebieskie mają niezmienną odległość od
+tych punktów, więc w ciągu ich dobowego ruchu po sferze niebieskiej jedna ze
 współrzędnych (odpowiadająca szerokości geograficznej) będzie niezmienna. Ta
-współrzędna to *deklinacja*.
+współrzędna to \emph{deklinacja} oznaczana grecką literą $\delta$.
 
 Podobnie jak w układzie współrzędnych geograficznych, na sferze niebieskiej
-możemy wyznaczyć koło wielkie będące równikiem niebieskim.
+możemy wyznaczyć okrąg wielki będący \emph{równikiem niebieskim}, czyli zawarty
+w płaszczyźnie prostopadłej do osi obrotu sfery niebieskiej. Punkty na równiku
+mają zerową deklinację.
 
 Ustalenie drugiej współrzędnej wymaga wybrania południka zerowego na niebie
-(odpowiednika południka w układzie współrzędnych geograficznych). Istnieją dwa
-rodzaje układu współrzędnych tego typu, tj. układu współrzędnych równikowych.
-Pierwszy z nich, układ równikowy godzinny, za południk zerowy obiera południk
-lokalny, czyli południk przechodzący przez zenit. Odpowiednikiem długości
-geograficznej jest w nim *kąt godzinny*. W ciągu dobowego ruchu sfery
-niebieskiej południk lokalny jest niezmienny względem obserwatora, ale
-zmieniają się kąty godzinne ciał niebieskich. W drugim układzie współrzędnych,
-równikowym równonocnym, południk zerowy przebiega przez punkt równonocy
-wiosennej. Odpowiednikiem długości geograficznej jest w nim *rektascensja*,
-która jest stała i niezależna od miejsca obserwacji. Układ równikowy
-równonocny jest stosowany w atlasach nieba do określania pozycji ciał
-niebieskich.
+(odpowiednika południka zerowego w układzie współrzędnych geograficznych).
+Istnieją dwa rodzaje układu współrzędnych tego typu, tj. układu współrzędnych
+równikowych.  Pierwszy z nich, układ \emph{równikowy godzinny}, za południk
+zerowy obiera \emph{południk lokalny}, czyli południk przechodzący przez zenit.
+Odpowiednikiem długości geograficznej jest w nim \emph{kąt godzinny}. W ciągu
+dobowego ruchu sfery niebieskiej południk lokalny jest niezmienny względem
+obserwatora, ale zmieniają się kąty godzinne ciał niebieskich. W drugim układzie
+współrzędnych, \emph{równikowym równonocnym}, południk zerowy przebiega przez
+punkt równonocy wiosennej, inaczej punkt barana oznaczany symbolem $\aries$.
+Odpowiednikiem długości geograficznej jest w nim \emph{rektascensja} oznaczana
+grecką literą $\alpha$ która jest stała i niezależna od miejsca obserwacji.
+Układ równikowy równonocny jest najczęściej stosowany w atlasach nieba do
+określania bezwzględnej pozycji ciał niebieskich.
 
-MONTAŻE ASTRONOMICZNE
+Deklinację mierzymy zazwyczaj w stopniach i zawiera się w przedziale od
+$-90\degree$ do $90\degree$. Rektascensję również możemy mierzyć w stopniach,
+jednak zazwyczaj podaje się ją w mierze czasowej, od $0$ do $24h$.
+
+\section{Montaże astronomiczne}
 
 W astronomii obserwacyjnej instrumenty obserwacyjne korzystają z dwóch typów
 montaży: azymutalnego i paralaktycznego. Montaż azymutalny jest prostszy
@@ -83,13 +97,13 @@ ponieważ porusza się w opisanym wyżej układzie równikowym. Oznacza to, że 
 Takie montaże to zazwyczaj bardzo precyzyjne urządzenia. Załóżmy parametry
 typowe dla amatorskiego zestawu do astrofotografii: ogniskowa teleskopu 750mm
 i matryca lustrzanki cyfrowej o rozmiarach 22.2mm x 14.8mm. Zdjęcie będzie
-wtedy obejmowało obszar na niebie o kątowych rozmiarach:
+obejmowało obszar na niebie o kątowych rozmiarach:
 
-2*atan(d/2f)
+$$2*arc tg(d/2f)$$
 
-Czyli 1,7 x 1,3 stopnia. Zakładając rozdzielczość finalnego zdjęcia rzędu
-1000px, każdy piksel ma rozmiar rzędu kilku sekund kątowych. Każde
-przesunięcie o 10'' jest widoczne na takim zdjęciu.
+Czyli dla powyższych parametrów ok. 1,7 x 1,3 stopnia. Zakładając rozdzielczość
+finalnego zdjęcia rzędu 1000px, każdy piksel ma rozmiar rzędu kilku sekund
+kątowych. Każde przesunięcie o 10'' jest widoczne na takim zdjęciu.
 
 Aby uzyskać żądaną dokładność montaże astronomiczne zawierają wbudowane
 przekładnie umożliwiające bardzo niewielkie przesunięcia, rzędu sekund
@@ -99,7 +113,7 @@ Dlatego montaże wyposaża się w silniki. W najprostszym scenariuszu wystarcza
 jeden silnik obracający montażem w jednej osi (osi kąta godzinnego) ze stałą
 prędkością.
 
-GOTO
+\section{Systemy GoTo}
 
 Jednym z kolejnych praktycznych problemów przy wykonywaniu zdjęć niewielkich
 obiektów głębokiego nieba jest ich wyszukiwanie na niebie. Można robić to
@@ -115,19 +129,19 @@ Rozwiązaniem tego problemu jest system GoTo. Korzysta on z napędu w obu osiach
 montażu do ustawiania go w żądanej pozycji. Po szybkiej kalibracji na jasnych
 obiektach (np. gwiazdach) system jest gotowy do użycia.
 
-GUIDING
+\section{Zaawansowane metody prowadzenia}
 
-Ostatnim usprawnieniem, o jakim będę wspomniał w tej pracy jest tzw. guiding.
-Rozwiązuje on problem dokładnego śledzenia obiektów, jednak w bardziej
-wyrafinowany sposób niż sterowanie napędem w jednej osi. Teoretycznie powinien
-on działać wystarczająco dobrze, na drodze stają nam jednak dwa problemy:
-niedokładne wykonanie przekładni i niedokładne ustawienie montażu. Pierwszy
-problem powoduje efekt niejednostajnego ruchu montażu pomimo jednostajnego
-obrotu śruby mikro ruchów. Drugi problem zależy od wprawy użytkownika montażu,
-który przed użyciem musi ustawić jego oś dokładnie tak, aby przebiegała przez
-biegun niebieski. W praktyce to ustawienie nigdy nie jest idealne i po
-odpowiednio długim czasie śledzenia następuje widoczne przesunięcie w osi
-deklinacji.
+Ostatnim usprawnieniem, o jakim będę wspomniał w tej pracy jest tzw.
+\emph{guiding}.  Rozwiązuje on problem dokładnego śledzenia obiektów, jednak
+w bardziej wyrafinowany sposób niż sterowanie napędem w jednej osi. Teoretycznie
+powinien on działać wystarczająco dobrze, na drodze stają nam jednak dwa
+problemy: niedokładne wykonanie przekładni i niedokładne ustawienie montażu.
+Pierwszy problem powoduje efekt niejednostajnego ruchu montażu pomimo
+jednostajnego obrotu śruby mikroruchów. Drugi problem zależy od wprawy
+użytkownika montażu, który przed użyciem musi ustawić jego oś dokładnie tak, aby
+przebiegała przez biegun niebieski. W praktyce to ustawienie nigdy nie jest
+idealne i po odpowiednio długim czasie śledzenia następuje widoczne przesunięcie
+w osi deklinacji.
 
 Systemy guidingu polegają na zastosowaniu drugiego, mniejszego teleskopu
 z czułą kamerą, przymocowanego do głównego teleskopu, do rejestrowania obrazu

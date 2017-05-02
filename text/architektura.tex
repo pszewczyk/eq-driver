@@ -1,4 +1,4 @@
-PRZYPADKI UŻYCIA
+\section{Przypadki użycia}
 
 Zgodnie z opisaną wcześniej problematyką można wyróżnić kilka przypadków
 użycia projektowanego systemu:
@@ -21,31 +21,35 @@ montażu w obu osiach w odpowiednich kierunkach.
 Wyłączenie kontroli nad montażem: użytkownik wyłącza kontrolę silników nad
 montażem.
 
-STANY
+\section{Tryby pracy}
 
 Sterownik montażu może znajdować się w kilku stanach:
 
-Śledzenie - tryb, w którym pozycja montażu zmienia się wraz z ruchem nieba.
-Sterowniki silników skonfigurowane są w trybie pracy mikrokrokowej.
+\begin{itemize}
 
-GoTo - tryb dążenia do pozycji docelowej. Silniki pracują w trybie pełnych
-kroków. Po ustawieniu w odpowiedniej pozycji system przechodzi w tryb
-śledzenia.
+\item Śledzenie - tryb, w którym pozycja montażu zmienia się wraz z ruchem
+nieba.  Sterowniki silników skonfigurowane są w trybie pracy mikrokrokowej.
 
-Manual - kierunek pracy silnika ustawiany jest ręcznie przez użytkownika.
+\item GoTo - tryb dążenia do pozycji docelowej. Silniki pracują w trybie pełnych
+kroków. Po ustawieniu w odpowiedniej pozycji system przechodzi w tryb śledzenia.
 
-OFF - silniki są wyłączone.
+\item Tryb ręczny - kierunek pracy silnika ustawiany jest ręcznie przez
+użytkownika.
 
-Z punktu widzenia użytkownika dwa z tych stanów, GOTO i MANUAL, wyróżniają się
-tymczasowością. Sterownik nie powinien pozostawać w tych stanach długo,
-a użytkownik nadzoruje wtedy pracę sterownika. Stany OFF i TRACKING są
+\item Wyłączony - silniki są wyłączone.
+
+\end{itemize}
+
+Z punktu widzenia użytkownika dwa z tych stanów, GoTo i tryb ręczny, wyróżniają
+się tymczasowością. Sterownik nie powinien pozostawać w tych stanach długo,
+a użytkownik nadzoruje wtedy pracę sterownika. Stany wyłączony i śledzenie są
 natomiast przeznaczone do nieprzerwanej pracy przez dłuższy okres czasu (rzędu
-godzin). Można więc przyjąć, że pierwsze dwa tryby pracy są "ręczne",
-natomiast pozostałe dwa są "autonomiczne".
+kilku godzin). Można więc przyjąć, że pierwsze dwa tryby pracy są \emph{ręczne},
+natomiast pozostałe dwa są \emph{autonomiczne}.
 
 Istotne jest, żeby domyślnym trybem pracy urządzenia był jeden z trybów
 autonomicznych, ponieważ ręczne tryby pracy bez nadzoru mogą narazić na
-uszkodzenie sprzęt obserwacyjny.
+uszkodzenie sprzęt obserwacyjny i nie powinny być używane bez nadzoru.
 
 Typową sytuacją jest pozostawienie ustawionego montażu na dłuższy czas w celu
 zebrania pewnej ilości danych (np. ekspozycja zdjęcia). Jeśli w takim
@@ -56,24 +60,36 @@ ponowną inicjalizację systemu, urządzenie wejdzie w jeden z trybów
 autonomicznych, który pozwoli na kontynuację samodzielnej pracy.
 
 Zależnie od trybu pracy urządzenia inne będą ustawienia pracy silników. Tabela
-przedstawia ustawienia dla poszczególnych trybów.
+\ref{tab_settings} przedstawia ustawienia dla poszczególnych trybów.
 
-Tryb	RA	DEC	Długość kroku	Rozdzielczość mikrokroków
+\begin{table}[t]
 
-TRACKING 1	0	0.207s		1/16
+\caption{Ustawienia sterownika dla różnych trybów pracy} \label{tab_settings}
 
-GOTO	1	1	0.002s		1
+\begin{tabular}{|l|l|l|l|l|}
 
-MANUAL	1	1	0.02s		1/16
+\hline Tryb	& Długość kroku	& Rozdzielczość mikrokroków \\
 
-OFF	0	0
+\hline Śledzenie & 0.207s	& 1/16 \\
 
-STRUKTURA OPROGRAMOWANIA
+\hline GoTo	& 0.002s	& 1 \\
 
-Oprogramowanie rozwiązania dzieli się na dwie zasadnicze części: sterownik
-montażu i aplikację klienta na urządzenia mobilne.
+\hline Ręczny	& 0.02s		& 1/16 \\
 
-STEROWNIK
+\hline Wyłączony & -		& - \\
+
+\hline 
+
+\end{tabular}
+
+\end{table}
+
+\section{Struktura oprogramowania}
+
+Oprogramowanie projektu dzieli się na dwie zasadnicze części: sterownik montażu
+i aplikację klienta na urządzenia mobilne.
+
+\subsection{Sterownik montażu}
 
 Implementacja sterownika korzysta z bibliotek SDK dostarczonego przez Nordic
 Semiconductors, które tworzą podstawową warstwę abstrakcji sprzętu.
