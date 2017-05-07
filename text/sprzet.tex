@@ -1,0 +1,48 @@
+\section{Przegląd użytych komponentów sprzętowych}
+
+\subsection{nrf51822}
+
+Głównym modułem zaprojektowanego urządzenia jest nrf51822. Realizuje on
+jednocześnie komunikację (Bluetooth) oraz logikę sterownika.
+
+Moduł nrf51822 oparty jest o 32-bitowy układ ARM Cortex M0. Umożliwia
+komunikację z użyciem Bluetooth Low Energy.
+
+\subsection{A4988}
+
+Komponentem odpowiedzialnym za sterowanie silnikami jest moduł A4988. Jest to
+sterownik silników krokowych z możliwością pracy w trybie mikrokroków.
+
+Napięcie zasilania silników: 8V - 35V
+
+Maksymalne natężenie prądu: 2A
+
+Możliwość pracy w trybach pełnego kroku, 1/2 kroku, 1/4 kroku, 1/8 kroku
+i 1/16 kroku
+
+Moduł posiada układ ograniczający prąd pobierany przez silnik, korzystający
+z modulacji PWM. Limit prądu można ustawić za pomocą potencjometru wbudowanego
+w układ.  Maksymalna wartość prądu wynosi:
+
+$$I_{TripMax} = V_{ref}/(8*R_s)$$
+
+Gdzie $R_s$ jest rezystancją czujnika wynoszącą dla użytego układu $0.05\ohm$
+a $V_{ref}$ napięciem na pinie REF (możliwym do łatwego zmierzenia).
+
+Ograniczenie prądu umożliwia również pracę z silnikami o niższym napięciu
+nominalnym niż 8V.
+
+\subsection{Silniki}
+
+Urządzenie pracuje z bipolarnymi silnikami krokowymi o nominalnych wartościach
+prądu i napięcia mniejszych niż limit sterownika: 2A i 35V. Przed użyciem
+silników należy się upewnić co do limitu prądu ustawionego w sterowniku:
+powinien być on równy wartości nominalnej prądu dla użytego silnika.
+
+Silniki użyte do testów urządzenia to bipolarne silniki krokowe o nominalnych
+wartościach napięcia i prądu odpowiednio 12V i 400mA.
+
+Liczba kroków na pełen obrót użytego silnika krokowego jest konfigurowana w kodzie sterownika
+jako MOTOR\_STEP\_RATIO i dla testowanych silników wynosi 200. Użycie innej
+wartości (np 400 kroków dla niektórych silników) wymaga ponownej kompilacji
+kodu sterownika.
