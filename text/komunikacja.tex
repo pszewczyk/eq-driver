@@ -1,0 +1,253 @@
+Użyta w projekcie technologia komunikacji to \emph{Bluetooth Low Energy} (BLE).
+BLE jest zaprojektowane jako energooszczędna implementacja standardu Bluetooth
+i pomimo użycia podobnej warstwy fizycznej nie jest kompatybilna z klasyczną
+wersją, \emph{Bluetooth Basic Rate / Enchanced Data Rate} (BR/EDR). Obecnie
+wiele urządzeń posiada wsparcie obu protokołów (tryb \emph{dual mode}).
+
+Warstwa fizyczna BLE podobnie jak w przypadku BR/EDR korzysta z pasma radiowego
+2.4GHz, jednak z mniejszą liczbą kanałów o większej szerokości. Wraz z warstwą
+łącza (ang link layer) warstwa fizyczna jest często realizowana przez moduł
+kontrolera (ang controller). Kontrolery bluetooth udostępniają interfejs HCI
+(ang Host-Controller Interface) służący do komunikacji między warstwą łącza
+a wyższymi warstwami. 
+
+Kolejna warstwa stosu BLE to \emph{Logical Link Control and Adaptation Layer}
+(L2CAP). Jest odpowiedzialna za segmentację danych i przekazywanie danych
+o jakości usługi (QoS) do wyższych warstw.
+
+Z L2CAP korzysta \emph{Attribute Protocol} (ATT). Definiuje on protokół wymiany
+danych w architekturze klient-serwer oparty na \emph{atrybutach} (ang.
+attribute).
+
+\section{Protokół GAP}
+
+Za odkrywanie dostępnych urządzeń i nawiązywanie połączeń odpowiedzialny jest
+protokół GAP (\emph{Generic Access Profile}). Udostępnia też mechanizmy
+bezpieczeństwa.
+
+\subsection{Role urządzeń}
+
+Specyfikacja GAP definiuje cztery role jakie mogą odgrywać urządzenia w procesie
+komunikacji w trybie BLE:
+
+\begin{itemize}
+
+\item Urządzenie rozgłaszające (ang. Broadcaster)
+
+\item Obserwator (ang. Observer)
+
+\item Urządzenie peryferyjne (ang. Peripherial)
+
+\item Urządzenie centralne (ang. Central)
+
+\end{itemize}
+
+\subsection{Proces rozgłaszania}
+
+Urządzenia rozgłaszające wysyłają dane rozgłoszeniowe do wszystkich urządzeń
+znajdujących się w zasięgu. Urządzenia pracujące jako obserwatorzy nasłuchują na
+dane rozgłoszeniowe innych urządzeń.
+
+W trakcie rozgłaszania danych urządzenie wysyła swój pakiet rozgłoszeniowy
+w regularnych odstępach czasu. Odstęp między kolejnymi transmisjami pakietu może
+być dowolną wielokrotnością $0.625ms$ między $20ms$ a $10.24ms$
+\cite{bluetooth42}.
+
+\subsection{Nawiązanie połączenia}
+
+Urządzenie przyjmuje rolę urządzenia centralnego w momencie zainicjowania
+połączenia z innym urządzeniem. Jeśli urządzenie zaakceptuje połączenie
+z urządzeniem centralnym, przyjmuje rolę urządzenia peryferyjnego.
+
+\section{Protokół GATT}
+
+Protokół GATT porządkuje atrybuty ATT w hierarchiczną strukturę serwisów.
+
+Nadrzędnym obiektem w hierarchii GATT jest \emph{profil} (ang. profile). Profile
+składają się z jednego lub więcej \emph{serwisów} (ang. service).
+
+Serwis złożony jest z \emph{charakterystyk} (ang. characterisics), które
+reprezentują pojedyncze wartości w serwisie (analogicznie do pól struktury lub
+klasy). Charakterystyka zawiera swoją wartość oraz opcjonalne metadane mówiące
+o jej przeznaczeniu, uprawnieniach odczytu i zapisu.
+
+\section{Opis profilu użytego w projekcie}
+
+\begin{table}[t]
+
+\begin{tabularx}{\linewidth}{|l|l|l|X|}
+
+\hline UUID & Nazwa & Długość [B] & opis \\
+
+\hline 0x1525 & CHAR\_POS & 8 & Pozycja w układzie współrzędnych równikowych \\
+
+\hline 0x1526 & CHAR\_DEST & 8 & Pozycja docelowa dla systemu GoTo \\
+
+\hline 0x1527 & CHAR\_MODE & 1 & Tryb pracy \\
+
+\hline 0x1528 & CHAR\_REVERSE & 1 & Flaga odwracająca układ współrzędnych \\
+
+\hline \end{tabularx}
+
+\caption{Zestaw charakterystyk serwisu EQ-Driver}
+
+\label{tab:eq-driver-service}
+
+\end{table}
+
+\begin{table}[t]
+
+\begin{tabularx}{\linewidth}{|l|l|X|}
+
+\hline Wartość & Nazwa &  opis \\
+
+\hline 0x01 & MODE\_TRACKING & Tryb śledzenia \\
+
+\hline 0x02 & MODE\_GOTO & Tryb GoTo \\
+
+\hline 0x03 & MODE\_MANUAL & Tryb ręcznego sterowania \\
+
+\hline 0xff & MODE\_OFF & Tryb bezczynności \\
+
+\hline \end{tabularx}
+
+\caption{Tryby pracy sterownika z wartościami kodów zapisanych
+w charakterystyce}
+
+\label{tab:eq-driver-modes}
+
+\end{table}
+
+Na potrzeby projektu powstał profil GATT umożliwiający komunikację ze
+sterownikiem teleskopu. Składa się on z jednego serwisu posiadającego kilka
+charakterystyk. Tabela \ref{tab:eq-driver-service} opisuje serwis EQ-Driver.
+
+\subsection{Kodowanie pozycji}
+
+Pozycja w układzie współrzędnych równikowych zapisana w charakterystykach
+serwisu kodowana jest na 8 bajtach. Pierwsze 4 bajty pozycji zawierają
+informację o rektascensji, pozostałe 4 bajty o deklinacji.
+
+Każda z tych wartości kodowana jest w formacie Little Endian i podana
+w sekundach kątowych, czyli $1/1296000$ części łuku.
+
+\subsection{Kodowanie trybu pracy}
+
+Tabela \ref{tab:eq-driver-modes} opisuje wartości możliwe do zapisania
+w charakterystyce odpowiadającej trybowi pracy. Jest on kodowany na jednym
+bajcie i może przyjmować jedną z czterech wartości podanych w tabeli.
+
+\subsection{Obsługa nieprawidłowych wartości}
+
+Zapisanie nieprawidłowej wartości do charakterystyki trybu pracy nie powiedzie
+się i ta nie ulegnie zmianie.
+
+Zapisanie nieprawidłowej wartości pozycji spowoduje przekształcenie jej
+w wartość poprawną.
+
+\section{Implementacja}
+
+\subsection{Inicjalizacja stosu Bluetooth}
+
+Za zainicjowanie BLE z odpowiednimi parametrami odpowiada funkcja
+\emph{ble\_init()}. Konfiguruje ona podsystem \emph{SoftDevice} i ustawia
+parametry rozgłaszania i połączeń.
+
+Konfiguracja parametrów BLE znajduje się w pliku \emph{eq\_ble.h}.
+
+\begin{table}[t]
+
+\begin{tabularx}{\linewidth}{|l|X|l|}
+
+\hline Parametr & Opis & Wartość \\
+
+\hline ADV\_INCLUDE\_APPEARANCE & Flaga oznaczająca dołączenie charakterystyki
+\emph{appearance} & 0 \\
+
+\hline ADV\_FAST\_ENABLED & Umożliwienie trybu szybkiego rozgłaszania & 1 \\
+
+\hline ADV\_FAST\_INTERVAL & Interwał rozgłaszania w trybie szybkiego
+rozgłaszania & $32.5ms$ \\
+
+\hline ADV\_FAST\_TIMEOUT & Czas trwania trybu szybkiego rozgłaszania & $120s$
+\\
+
+\hline DEVICE\_NAME & Rozgłaszana nazwa urządzenia & ''EQ-Driver'' \\
+
+\hline \end{tabularx}
+
+\caption{Konfiguracja rozgłaszania}
+
+\label{tab:parametry-rozglaszania}
+
+\end{table}
+
+Parametry rozgłaszania opisuje \ref{tab:parametry-rozglaszania}.
+
+SoftDevice pozwala na konfigurację czterech różnych trybów rozgłaszania:
+
+\begin{itemize}
+
+\item Bezpośredni (Directed)- po rozłączeniu aplikacja próbuje połączyć się
+ponownie z urządzeniem, z którym utraciła połączenie
+
+\item Szybki (fast) - Aplikacja rozgłasza dane w krótkich interwałach
+
+\item Wolny (slow) - Aplikacja rozgłasza dane w długich interwałach aby
+oszczędzać energię
+
+\item Idle - Aplikacja nie rozgłasza danych
+
+\end{itemize}
+
+Aplikacja włącza kolejne tryby na określony czas badź do czasu nawiązania
+połączenia. Jeśli żadne urządzenie nie zainicjuje połączenia w trybie szybkim,
+rozpocznie się rozgłaszanie z dłuższym interwałem obniżając zużycie energii.
+
+\begin{table}[t]
+
+\begin{tabularx}{\linewidth}{|l|X|l|}
+
+\hline Parametr & Opis & Wartość \\
+
+\hline MIN\_CONN\_INTERVAL & Dolne ograniczenie czasu pomiędzy transmisjami
+danych & $125ms$ \\
+
+\hline MAX\_CONN\_INTERVAL & Górne ograniczenie czasu pomiędzy transmisjami
+danych & $250ms$ \\
+
+\hline SLAVE\_LATENCY & Liczba kolejnych żądań na które urządzenie może nie
+odpowiadać & 0 \\
+
+\hline CONN\_SUP\_TIMEOUT & Czas od ostatniego dostarczenia danych po którym
+połączenie jest uważane za utracone & $40s$ \\
+
+\hline \end{tabularx}
+
+\caption{Konfiguracja połączeń}
+
+\label{tab:parametry-polaczenia}
+
+\end{table}
+
+Po nawiązaniu połączenia urządzenie centralne będzie żądać od urządzenia
+peryferyjnego danych regularnie. Parametry MIN\_CONN\_INTERVAL
+i MAX\_CONN\_INTERVAL przekazywane są urządzeniu centralnemu i ustalają
+ograniczenie czasu pomiędzy kolejnymi żądaniami.
+
+Parametr SLAVE\_LATENCY umożliwia urządzeniu peryferyjnemu na nieodpowiadanie na
+żądania urządzenia centralnego $n$ razy, co pozwala mu na dłuższy okres
+bezczynności, kiedy nie ma nowych danych do wysłania. Ustawienie tej wartości na
+0 wyłącza tę funkcjonalność.
+
+Parametr CONN\_SUP\_TIMEOUT definiuje maksymalny czas od ostatniej transmisji
+danych. Po tym czasie połączenie jest uważane za utracone i urządzenie może
+próbować połączyć się z nim ponownie.
+
+\subsection{Obsługa zdarzeń protokołu GAP}
+
+TODO
+
+\subsection{Obsługa zdarzeń protokołu GATT}
+
+TODO
