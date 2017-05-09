@@ -4,21 +4,20 @@
 static ble_advdata_t advdata = {
 	.name_type = BLE_ADVDATA_FULL_NAME,
 	.flags = BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE,
-	.include_appearance = 0,
+	.include_appearance = ADV_INCLUDE_APPEARANCE,
 };
 
 static ble_adv_modes_config_t advcfg = {
-	.ble_adv_fast_enabled = 1,
-	.ble_adv_fast_interval = 50, /* in 0.65ms units */
-	.ble_adv_fast_timeout = 120, /* in seconds */
+	.ble_adv_fast_enabled = ADV_FAST_ENABLED,
+	.ble_adv_fast_interval = ADV_FAST_INTERVAL, /* in 0.65ms units */
+	.ble_adv_fast_timeout = ADV_FAST_TIMEOUT, /* in seconds */
 };
-
 /* Values in 1.25ms units */
 static ble_gap_conn_params_t gap_conn_params = {
-	.min_conn_interval = 100,
-	.max_conn_interval = 200,
-	.slave_latency = 0,
-	.conn_sup_timeout = 4000,
+	.min_conn_interval = MIN_CONN_INTERVAL,
+	.max_conn_interval = MAX_CONN_INTERVAL,
+	.slave_latency = SLAVE_LATENCY,
+	.conn_sup_timeout = CONN_SUP_TIMEOUT,
 };	
 
 static void on_conn_params_evt(ble_conn_params_evt_t *evt);

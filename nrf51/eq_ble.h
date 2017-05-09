@@ -11,6 +11,17 @@
 #define TIMER_PRESCALER 0
 #define TIMER_OP_QUEUE_SIZE 8
 
+#define ADV_INCLUDE_APPEARANCE 0
+
+#define ADV_FAST_ENABLED 1
+#define ADV_FAST_INTERVAL 50 /* in 0.65ms units */
+#define ADV_FAST_TIMEOUT 120 /* in seconds */
+
+#define MIN_CONN_INTERVAL 100
+#define MAX_CONN_INTERVAL 200
+#define SLAVE_LATENCY 0
+#define CONN_SUP_TIMEOUT 4000
+
 enum eq_gatt_perm {
 	PERM_READ = 0x01,
 	PERM_WRITE = 0x02,
