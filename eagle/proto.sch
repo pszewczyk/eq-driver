@@ -10695,6 +10695,52 @@ Source: http://download.siliconexpert.com/pdfs/2005/02/24/Semi_Ap/2/VSH/Resistor
 </deviceset>
 </devicesets>
 </library>
+<library name="eq-custom2">
+<packages>
+<package name="TACT-SWITCH-THT">
+<wire x1="3" y1="-3" x2="3" y2="3" width="0.127" layer="21"/>
+<wire x1="3" y1="3" x2="-3" y2="3" width="0.127" layer="21"/>
+<wire x1="-3" y1="3" x2="-3" y2="-3" width="0.127" layer="21"/>
+<wire x1="-3" y1="-3" x2="3" y2="-3" width="0.127" layer="21"/>
+<circle x="-2" y="2" radius="0.5" width="0.127" layer="21"/>
+<circle x="2" y="2" radius="0.5" width="0.127" layer="21"/>
+<circle x="2" y="-2" radius="0.5" width="0.127" layer="21"/>
+<circle x="-2" y="-2" radius="0.5" width="0.127" layer="21"/>
+<circle x="0" y="0" radius="1.802775" width="0.127" layer="21"/>
+<pad name="P$1" x="-2.65" y="0" drill="0.8" diameter="1.6764" shape="octagon"/>
+<pad name="P$2" x="2.65" y="0" drill="0.8" diameter="1.6764" shape="octagon"/>
+<text x="-3" y="3.2" size="1.27" layer="21">&gt;NAME</text>
+</package>
+</packages>
+<symbols>
+<symbol name="SWITCH">
+<wire x1="-12.7" y1="0" x2="-5.08" y2="0" width="0.254" layer="94"/>
+<wire x1="5.08" y1="0" x2="12.7" y2="0" width="0.254" layer="94"/>
+<wire x1="-5.08" y1="0" x2="2.54" y2="5.08" width="0.254" layer="94"/>
+<pin name="P$1" x="-12.7" y="0" length="middle"/>
+<pin name="P$2" x="12.7" y="0" length="middle" rot="R180"/>
+<text x="-5.08" y="-2.54" size="1.778" layer="95">&gt;NAME</text>
+</symbol>
+</symbols>
+<devicesets>
+<deviceset name="TACT-SWITCH">
+<gates>
+<gate name="G$1" symbol="SWITCH" x="0" y="0"/>
+</gates>
+<devices>
+<device name="" package="TACT-SWITCH-THT">
+<connects>
+<connect gate="G$1" pin="P$1" pad="P$1"/>
+<connect gate="G$1" pin="P$2" pad="P$2"/>
+</connects>
+<technologies>
+<technology name=""/>
+</technologies>
+</device>
+</devices>
+</deviceset>
+</devicesets>
+</library>
 </libraries>
 <attributes>
 </attributes>
@@ -10737,6 +10783,22 @@ Source: http://download.siliconexpert.com/pdfs/2005/02/24/Semi_Ap/2/VSH/Resistor
 <part name="R2" library="eagle-ltspice" deviceset="R" device="0204/7"/>
 <part name="GND7" library="supply1" deviceset="GND" device=""/>
 <part name="GND9" library="supply1" deviceset="GND" device=""/>
+<part name="RA+" library="eq-custom2" deviceset="TACT-SWITCH" device=""/>
+<part name="+3V2" library="supply1" deviceset="+3V3" device=""/>
+<part name="GND12" library="supply1" deviceset="GND" device=""/>
+<part name="RA-" library="eq-custom2" deviceset="TACT-SWITCH" device=""/>
+<part name="DEC+" library="eq-custom2" deviceset="TACT-SWITCH" device=""/>
+<part name="DEC-" library="eq-custom2" deviceset="TACT-SWITCH" device=""/>
+<part name="GND13" library="supply1" deviceset="GND" device=""/>
+<part name="GND14" library="supply1" deviceset="GND" device=""/>
+<part name="GND15" library="supply1" deviceset="GND" device=""/>
+<part name="LED3" library="led" deviceset="LED" device="3MM"/>
+<part name="LED4" library="led" deviceset="LED" device="3MM"/>
+<part name="R3" library="eagle-ltspice" deviceset="R" device="0204/7"/>
+<part name="R4" library="eagle-ltspice" deviceset="R" device="0204/7"/>
+<part name="GND16" library="supply1" deviceset="GND" device=""/>
+<part name="GND17" library="supply1" deviceset="GND" device=""/>
+<part name="GND18" library="supply1" deviceset="GND" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -10782,7 +10844,7 @@ Source: http://download.siliconexpert.com/pdfs/2005/02/24/Semi_Ap/2/VSH/Resistor
 <instance part="J1" gate="G$1" x="-162.56" y="20.32"/>
 <instance part="GND1" gate="1" x="-152.4" y="10.16"/>
 <instance part="GND2" gate="1" x="-134.62" y="12.7"/>
-<instance part="GND3" gate="1" x="-104.14" y="17.78" rot="R270"/>
+<instance part="GND3" gate="1" x="-104.14" y="25.4" rot="R180"/>
 <instance part="SWD" gate="A" x="-22.86" y="35.56"/>
 <instance part="GND4" gate="1" x="-40.64" y="35.56" rot="R270"/>
 <instance part="UART0" gate="A" x="22.86" y="2.54"/>
@@ -10810,11 +10872,27 @@ Source: http://download.siliconexpert.com/pdfs/2005/02/24/Semi_Ap/2/VSH/Resistor
 <instance part="IC2" gate="A" x="-134.62" y="22.86"/>
 <instance part="C2" gate="G$1" x="-144.78" y="17.78"/>
 <instance part="LED1" gate="G$1" x="-160.02" y="-30.48"/>
-<instance part="LED2" gate="G$1" x="-147.32" y="-30.48"/>
+<instance part="LED2" gate="G$1" x="-149.86" y="-30.48"/>
 <instance part="R1" gate="G$1" x="-160.02" y="-20.32" rot="R90"/>
-<instance part="R2" gate="G$1" x="-147.32" y="-20.32" rot="R90"/>
-<instance part="GND7" gate="1" x="-160.02" y="-43.18"/>
-<instance part="GND9" gate="1" x="-147.32" y="-43.18"/>
+<instance part="R2" gate="G$1" x="-149.86" y="-20.32" rot="R90"/>
+<instance part="GND7" gate="1" x="-160.02" y="-38.1"/>
+<instance part="GND9" gate="1" x="-149.86" y="-38.1"/>
+<instance part="RA+" gate="G$1" x="-177.8" y="-27.94" rot="R270"/>
+<instance part="+3V2" gate="G$1" x="7.62" y="22.86"/>
+<instance part="GND12" gate="1" x="-177.8" y="-43.18"/>
+<instance part="RA-" gate="G$1" x="-190.5" y="-27.94" rot="R270"/>
+<instance part="DEC+" gate="G$1" x="-203.2" y="-27.94" rot="R270"/>
+<instance part="DEC-" gate="G$1" x="-215.9" y="-27.94" rot="R270"/>
+<instance part="GND13" gate="1" x="-190.5" y="-43.18"/>
+<instance part="GND14" gate="1" x="-203.2" y="-43.18"/>
+<instance part="GND15" gate="1" x="-215.9" y="-43.18"/>
+<instance part="LED3" gate="G$1" x="-139.7" y="-30.48"/>
+<instance part="LED4" gate="G$1" x="-129.54" y="-30.48"/>
+<instance part="R3" gate="G$1" x="-139.7" y="-20.32" rot="R90"/>
+<instance part="R4" gate="G$1" x="-129.54" y="-20.32" rot="R90"/>
+<instance part="GND16" gate="1" x="-139.7" y="-38.1"/>
+<instance part="GND17" gate="1" x="-129.54" y="-38.1"/>
+<instance part="GND18" gate="1" x="-83.82" y="5.08" rot="R270"/>
 </instances>
 <busses>
 </busses>
@@ -10834,6 +10912,7 @@ Source: http://download.siliconexpert.com/pdfs/2005/02/24/Semi_Ap/2/VSH/Resistor
 <segment>
 <pinref part="U$1" gate="GND" pin="S"/>
 <pinref part="GND3" gate="1" pin="GND"/>
+<wire x1="-104.14" y1="22.86" x2="-101.6" y2="17.78" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <pinref part="GND4" gate="1" pin="GND"/>
@@ -10876,13 +10955,39 @@ Source: http://download.siliconexpert.com/pdfs/2005/02/24/Semi_Ap/2/VSH/Resistor
 </segment>
 <segment>
 <pinref part="LED1" gate="G$1" pin="C"/>
-<wire x1="-160.02" y1="-35.56" x2="-160.02" y2="-40.64" width="0.1524" layer="91"/>
 <pinref part="GND7" gate="1" pin="GND"/>
 </segment>
 <segment>
 <pinref part="LED2" gate="G$1" pin="C"/>
-<wire x1="-147.32" y1="-35.56" x2="-147.32" y2="-40.64" width="0.1524" layer="91"/>
 <pinref part="GND9" gate="1" pin="GND"/>
+</segment>
+<segment>
+<pinref part="RA+" gate="G$1" pin="P$2"/>
+<pinref part="GND12" gate="1" pin="GND"/>
+</segment>
+<segment>
+<pinref part="RA-" gate="G$1" pin="P$2"/>
+<pinref part="GND13" gate="1" pin="GND"/>
+</segment>
+<segment>
+<pinref part="DEC+" gate="G$1" pin="P$2"/>
+<pinref part="GND14" gate="1" pin="GND"/>
+</segment>
+<segment>
+<pinref part="DEC-" gate="G$1" pin="P$2"/>
+<pinref part="GND15" gate="1" pin="GND"/>
+</segment>
+<segment>
+<pinref part="LED3" gate="G$1" pin="C"/>
+<pinref part="GND16" gate="1" pin="GND"/>
+</segment>
+<segment>
+<pinref part="LED4" gate="G$1" pin="C"/>
+<pinref part="GND17" gate="1" pin="GND"/>
+</segment>
+<segment>
+<pinref part="U$1" gate="GND@2" pin="S"/>
+<pinref part="GND18" gate="1" pin="GND"/>
 </segment>
 </net>
 <net name="+12V" class="0">
@@ -10931,6 +11036,12 @@ Source: http://download.siliconexpert.com/pdfs/2005/02/24/Semi_Ap/2/VSH/Resistor
 <pinref part="+3V5" gate="G$1" pin="+3V3"/>
 <wire x1="7.62" y1="-50.8" x2="15.24" y2="-50.8" width="0.1524" layer="91"/>
 <wire x1="15.24" y1="-50.8" x2="15.24" y2="-53.34" width="0.1524" layer="91"/>
+</segment>
+<segment>
+<pinref part="+3V2" gate="G$1" pin="+3V3"/>
+<pinref part="UART0" gate="A" pin="2"/>
+<wire x1="7.62" y1="20.32" x2="7.62" y2="7.62" width="0.1524" layer="91"/>
+<wire x1="7.62" y1="7.62" x2="20.32" y2="7.62" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="TX" class="0">
@@ -11275,7 +11386,7 @@ Source: http://download.siliconexpert.com/pdfs/2005/02/24/Semi_Ap/2/VSH/Resistor
 <segment>
 <pinref part="R2" gate="G$1" pin="1"/>
 <pinref part="LED2" gate="G$1" pin="A"/>
-<wire x1="-147.32" y1="-25.4" x2="-147.32" y2="-27.94" width="0.1524" layer="91"/>
+<wire x1="-149.86" y1="-25.4" x2="-149.86" y2="-27.94" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="LED1" class="0">
@@ -11293,13 +11404,99 @@ Source: http://download.siliconexpert.com/pdfs/2005/02/24/Semi_Ap/2/VSH/Resistor
 <net name="LED2" class="0">
 <segment>
 <pinref part="R2" gate="G$1" pin="2"/>
-<wire x1="-147.32" y1="-15.24" x2="-147.32" y2="-10.16" width="0.1524" layer="91"/>
-<label x="-147.32" y="-15.24" size="1.778" layer="95" rot="R90"/>
+<wire x1="-149.86" y1="-15.24" x2="-149.86" y2="-10.16" width="0.1524" layer="91"/>
+<label x="-149.86" y="-15.24" size="1.778" layer="95" rot="R90"/>
 </segment>
 <segment>
 <pinref part="U$1" gate="P0.26" pin="S"/>
 <wire x1="-101.6" y1="10.16" x2="-106.68" y2="10.16" width="0.1524" layer="91"/>
 <label x="-106.68" y="10.16" size="1.778" layer="95"/>
+</segment>
+</net>
+<net name="RA+" class="0">
+<segment>
+<pinref part="RA+" gate="G$1" pin="P$1"/>
+<wire x1="-177.8" y1="-15.24" x2="-177.8" y2="-5.08" width="0.1524" layer="91"/>
+<label x="-177.8" y="-10.16" size="1.778" layer="95" rot="R90"/>
+</segment>
+<segment>
+<pinref part="X1" gate="P0.15" pin="S"/>
+<wire x1="-43.18" y1="10.16" x2="-48.26" y2="10.16" width="0.1524" layer="91"/>
+<label x="-48.26" y="10.16" size="1.778" layer="95"/>
+</segment>
+</net>
+<net name="RA-" class="0">
+<segment>
+<pinref part="RA-" gate="G$1" pin="P$1"/>
+<wire x1="-190.5" y1="-15.24" x2="-190.5" y2="-5.08" width="0.1524" layer="91"/>
+<label x="-193.04" y="-5.08" size="1.778" layer="95" rot="R270"/>
+</segment>
+<segment>
+<pinref part="X1" gate="P0.13" pin="S"/>
+<wire x1="-43.18" y1="7.62" x2="-48.26" y2="7.62" width="0.1524" layer="91"/>
+<label x="-48.26" y="7.62" size="1.778" layer="95"/>
+</segment>
+</net>
+<net name="DEC+" class="0">
+<segment>
+<pinref part="DEC+" gate="G$1" pin="P$1"/>
+<wire x1="-203.2" y1="-15.24" x2="-203.2" y2="-5.08" width="0.1524" layer="91"/>
+<label x="-205.74" y="-5.08" size="1.778" layer="95" rot="R270"/>
+</segment>
+<segment>
+<pinref part="X1" gate="P0.16" pin="S"/>
+<wire x1="-22.86" y1="10.16" x2="-27.94" y2="10.16" width="0.1524" layer="91"/>
+<label x="-27.94" y="10.16" size="1.778" layer="95"/>
+</segment>
+</net>
+<net name="DEC-" class="0">
+<segment>
+<pinref part="DEC-" gate="G$1" pin="P$1"/>
+<wire x1="-215.9" y1="-15.24" x2="-215.9" y2="-5.08" width="0.1524" layer="91"/>
+<label x="-218.44" y="-5.08" size="1.778" layer="95" rot="R270"/>
+</segment>
+<segment>
+<pinref part="X1" gate="P0.14" pin="S"/>
+<wire x1="-22.86" y1="7.62" x2="-27.94" y2="7.62" width="0.1524" layer="91"/>
+<label x="-27.94" y="7.62" size="1.778" layer="95"/>
+</segment>
+</net>
+<net name="N$3" class="0">
+<segment>
+<pinref part="LED3" gate="G$1" pin="A"/>
+<pinref part="R3" gate="G$1" pin="1"/>
+<wire x1="-139.7" y1="-25.4" x2="-139.7" y2="-27.94" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="N$6" class="0">
+<segment>
+<pinref part="LED4" gate="G$1" pin="A"/>
+<pinref part="R4" gate="G$1" pin="1"/>
+<wire x1="-129.54" y1="-25.4" x2="-129.54" y2="-27.94" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="LED3" class="0">
+<segment>
+<pinref part="R3" gate="G$1" pin="2"/>
+<wire x1="-139.7" y1="-15.24" x2="-139.7" y2="-10.16" width="0.1524" layer="91"/>
+<label x="-139.7" y="-15.24" size="1.778" layer="95" rot="R90"/>
+</segment>
+<segment>
+<pinref part="U$1" gate="P0.24" pin="S"/>
+<wire x1="-101.6" y1="12.7" x2="-106.68" y2="12.7" width="0.1524" layer="91"/>
+<label x="-106.68" y="12.7" size="1.778" layer="95"/>
+</segment>
+</net>
+<net name="LED4" class="0">
+<segment>
+<pinref part="R4" gate="G$1" pin="2"/>
+<wire x1="-129.54" y1="-15.24" x2="-129.54" y2="-10.16" width="0.1524" layer="91"/>
+<label x="-129.54" y="-15.24" size="1.778" layer="95" rot="R90"/>
+</segment>
+<segment>
+<pinref part="U$1" gate="P0.22" pin="S"/>
+<wire x1="-101.6" y1="15.24" x2="-106.68" y2="15.24" width="0.1524" layer="91"/>
+<label x="-106.68" y="15.24" size="1.778" layer="95"/>
 </segment>
 </net>
 </nets>
