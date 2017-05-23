@@ -29,7 +29,6 @@ public class DeviceListActivity extends ListActivity {
     ArrayList<String> listItems = new ArrayList<String>();
     ArrayList<BluetoothDevice> listDevs = new ArrayList<BluetoothDevice>();
     ArrayAdapter<String> arrayAdapter;
-    HashMap<String, BluetoothDevice> devsByAdress;
     public static final String EXTRA_MESSAGE = "pl.edu.pw.eiti.pszewczyk.MESSAGE";
 
     private BluetoothAdapter btAdapter;
@@ -45,11 +44,10 @@ public class DeviceListActivity extends ListActivity {
                 @Override
                 public void onLeScan(final BluetoothDevice device, int rssi,
                                      byte[] scanRecord) {
-                    if (!devsByAdress.containsKey(device.getAddress())) {
+                    if (!listDevs.contains(device)) {
                         listItems.add(device.getName());
                         listDevs.add(device);
                         arrayAdapter.notifyDataSetChanged();
-                        devsByAdress.put(device.getAddress(), device);
                     }
                 }
             };
@@ -73,8 +71,7 @@ public class DeviceListActivity extends ListActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_device_list);
-        devsByAdress = new HashMap<String, BluetoothDevice>();
-        arrayAdapter = new ArrayAdapter<String>(this,
+            arrayAdapter = new ArrayAdapter<String>(this,
                 android.R.layout.simple_list_item_1,
                 listItems);
         setListAdapter(arrayAdapter);

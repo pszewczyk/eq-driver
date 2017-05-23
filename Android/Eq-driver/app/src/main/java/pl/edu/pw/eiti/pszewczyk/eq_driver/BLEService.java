@@ -36,15 +36,41 @@ public class BLEService extends Service {
     public static final short CHAR_POS_UUID = 0x1525;
     public static final short CHAR_DEST_UUID = 0x1526;
     public static final short CHAR_MODE_UUID = 0x1527;
-    public static final short CHAR_REVERSE_UUID = 0x1527;
+    public static final short CHAR_REVERSE_UUID = 0x1528;
     public static String CLIENT_CHARACTERISTIC_CONFIG = "00002902-0000-1000-8000-00805f9b34fb";
+    public static String MAIN_SERVICE_UUID = "00001523-f672-4679-9d80-22fedbd66944";
+    public static UUID FULL_CHAR_POS_UUID = UUID.fromString("00001525-f672-4679-9d80-22fedbd66944");
+    public static UUID FULL_CHAR_DEST_UUID = UUID.fromString("00001526-f672-4679-9d80-22fedbd66944");
+    public static UUID FULL_CHAR_MODE_UUID = UUID.fromString("00001527-f672-4679-9d80-22fedbd66944");
+    public static UUID FULL_CHAR_REVERSE_UUID = UUID.fromString("00001528-f672-4679-9d80-22fedbd66944");
+    public static byte MODE_TRACKING = 0x01;
+    public static byte MODE_GOTO = 0x02;
+    public static byte MODE_MANUAL = 0x03;
+    public static byte MODE_OFF = -1;
 
-    LinkedList<BluetoothGattCharacteristic> readQ = new LinkedList<BluetoothGattCharacteristic>();
+    LinkedList<BluetoothGattCharacteristic> readQ = new LinkedList<>();
     boolean reading = false;
 
     BluetoothDevice device;
     int mConnectionState = STATE_DISCONNECTED;
     public static BluetoothGatt mBluetoothGatt;
+
+    public static void writeCharacteristic(UUID uuid, byte[] value) {
+        BluetoothGattService service = mBluetoothGatt.getService(UUID.fromString(MAIN_SERVICE_UUID));
+        if (service == null) {
+            Log.i(TAG, "No service "+ MAIN_SERVICE_UUID +" found");
+            return;
+        }
+
+        BluetoothGattCharacteristic c = service.getCharacteristic(uuid);
+        if (c == null) {
+            Log.i(TAG, "No characteristic "+ uuid +" found");
+            return;
+        }
+
+        c.setValue(value);
+        mBluetoothGatt.writeCharacteristic(c);
+    }
 
     @Nullable
     @Override
@@ -89,7 +115,6 @@ public class BLEService extends Service {
                         mConnectionState = STATE_DISCONNECTED;
                         sendBroadcast(new Intent(ACTION_GATT_DISCONNECTED));
                         Log.i(TAG, "disconnected");
-                        mBluetoothGatt.connect();
                     }
                 }
 
@@ -132,7 +157,6 @@ public class BLEService extends Service {
                                                  int status) {
                     if (status == BluetoothGatt.GATT_SUCCESS) {
                         sendBroadcast(new Intent(ACTION_DATA_AVAILABLE));
-                        Log.i(TAG, "Read " + getShortUUID(characteristic.getUuid()));
                     }
 
                     if (readQ.isEmpty())
@@ -147,8 +171,13 @@ public class BLEService extends Service {
                 @Override
                 public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
                     sendBroadcast(new Intent(ACTION_DATA_AVAILABLE));
-                    Log.i(TAG, "Updated " + getShortUUID(characteristic.getUuid()));
                     super.onCharacteristicChanged(gatt, characteristic);
                 }
             };
+
+    @Override
+    public void onDestroy() {
+        mBluetoothGatt.disconnect();
+        super.onDestroy();
+    }
 }

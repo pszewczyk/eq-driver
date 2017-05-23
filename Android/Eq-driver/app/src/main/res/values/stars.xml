@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="stars">
+        <item>Achernar(Alp Eri),87942,-206052</item>
+        <item>Acrux(Alp1Cru),671938,-227156</item>
+        <item>Adhara(21Eps CMa),376763,-104299</item>
+        <item>Aldebaran(87Alp Tau),248328,59433</item>
+        <item>Alhena(24Gam Gem),357940,59037</item>
+        <item>Alioth(77Eps UMa),696625,201455</item>
+        <item>Alkaid(85Eta UMa),744787,177527</item>
+        <item>Alnair(Alp Gru),1195409,-169059</item>
+        <item>Alnath(112Bet Tau),293662,102986</item>
+        <item>Alnilam(46Eps Ori),302592,-4326</item>
+        <item>Alnitak(50Zet Ori),306682,-6993</item>
+        <item>Alphard(30Alp Hya),510828,-31170</item>
+        <item>Altair(53Alp Aql),1071704,31925</item>
+        <item>Antares(21Alp Sco),890466,-95155</item>
+        <item>Arcturus(16Alp Boo),770095,69056</item>
+        <item>Atria(Alp TrA),907798,-248499</item>
+        <item>Avior(Eps Car),452262,-214234</item>
+        <item>Becrux(Bet Cru),690949,-214879</item>
+        <item>Bellatrix(24Gam Ori),292617,22858</item>
+        <item>Betelgeuse(58Alp Ori),319654,26665</item>
+        <item>Canopus(Alp Car),345556,-189704</item>
+        <item>Capella(13Alp Aur),285020,165592</item>
+        <item>Castor(66Alp Gem),409138,114797</item>
+        <item>Deneb(50Alp Cyg),1117288,163009</item>
+        <item>Dubhe(50Alp UMa),597356,222303</item>
+        <item>Fomalhaut(24Alp PsA),1239885,-106640</item>
+        <item>Gacrux(Gam Cru),676049,-205607</item>
+        <item>Hadar(Bet Cen),759441,-217342</item>
+        <item>Kaus Australis(20Eps Sgr),993754,-123784</item>
+        <item>Menkalinan(34Bet Aur),323576,161810</item>
+        <item>Miaplacidus(Bet Car),497882,-250981</item>
+        <item>Mirphak(33Alp Per),183890,179500</item>
+        <item>Mirzam(2Bet CMa),344429,-64641</item>
+        <item>Peacock(Alp Pav),1103082,-204246</item>
+        <item>Polaris(1Alp UMi),136606,321350</item>
+        <item>Pollux(78Bet Gem),418784,100894</item>
+        <item>Procyon(10Alp CMi),413371,18809</item>
+        <item>Regulus(32Alp Leo),547534,43081</item>
+        <item>Rigel Kentaurus(Alp2Cen),791658,-219017</item>
+        <item>Rigel(19Bet Ori),283084,-29525</item>
+        <item>Rigil Kentaurus(Alp1Cen),791681,-219002</item>
+        <item>Sargas(The Sco),951586,-154792</item>
+        <item>Shaula(35Lam Sco),948247,-133573</item>
+        <item>Sirius(9Alp CMa),364633,-60178</item>
+        <item>Spica(67Alp Vir),724673,-40180</item>
+        <item>Vega(3Alp Lyr),1005244,139621</item>
+        <item>Wezen(25Del CMa),385552,-95015</item>
+    </array>
+</resources>
