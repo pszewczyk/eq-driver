@@ -61,15 +61,28 @@ z urządzeniem centralnym, przyjmuje rolę urządzenia peryferyjnego.
 
 \section{Protokół GATT}
 
-Protokół GATT porządkuje atrybuty ATT w hierarchiczną strukturę serwisów.
+Protokół GATT (ang. Generic Attributes) porządkuje atrybuty ATT w hierarchiczną
+strukturę serwisów. GATT pozwala na zdefiniowanie profilu odpowiadającego
+funkcjonalności urządzenia.
 
 Nadrzędnym obiektem w hierarchii GATT jest \emph{profil} (ang. profile). Profile
-składają się z jednego lub więcej \emph{serwisów} (ang. service).
+GATT mają podobne zadanie do tradycyjnych profili Bluetooth: definiują wymagania
+dla aplikacji mających spełniać typowe zadania. Specyfikacja protokołu GATT
+również definiuje zestaw profili dla typowych zastosowań takich jak np. czujniki
+biomedyczne (pulsometry, czujniki ciśnienia krwi itp.). GATT umożliwia jednak
+łatwe zdefiniowanie własnego profilu w przypadkach nieobjętych specyfikacją
+protokołu.
+
+Profile składają się z jednego lub więcej \emph{serwisów} (ang. service). Serwis
+reprezentuje spójny zestaw funkcjonalności dostarczanych przez urządzenie.
 
 Serwis złożony jest z \emph{charakterystyk} (ang. characterisics), które
 reprezentują pojedyncze wartości w serwisie (analogicznie do pól struktury lub
 klasy). Charakterystyka zawiera swoją wartość oraz opcjonalne metadane mówiące
 o jej przeznaczeniu, uprawnieniach odczytu i zapisu.
+
+Z punktu widzenia warstwy aplikacji protokół GATT pozwala na odczytywanie
+i zapisywanie charakterystyk zebranych w strukturę serwisów i profili.
 
 \section{Opis profilu użytego w projekcie}
 
@@ -122,36 +135,36 @@ Na potrzeby projektu powstał profil GATT umożliwiający komunikację ze
 sterownikiem teleskopu. Składa się on z jednego serwisu posiadającego kilka
 charakterystyk. Tabela \ref{tab:eq-driver-service} opisuje serwis EQ-Driver.
 
-\subsection{Kodowanie pozycji}
-
-Pozycja w układzie współrzędnych równikowych zapisana w charakterystykach
-serwisu kodowana jest na 8 bajtach. Pierwsze 4 bajty pozycji zawierają
-informację o rektascensji, pozostałe 4 bajty o deklinacji.
+\paragraph{Kodowanie pozycji} Pozycja w układzie współrzędnych równikowych
+zapisana w charakterystykach serwisu kodowana jest na 8 bajtach. Pierwsze
+4 bajty pozycji zawierają informację o rektascensji, pozostałe 4 bajty
+o deklinacji.
 
 Każda z tych wartości kodowana jest w formacie Little Endian i podana
 w sekundach kątowych, czyli $1/1296000$ części łuku.
 
-\subsection{Kodowanie trybu pracy}
+\paragraph{Kodowanie trybu pracy} Tabela \ref{tab:eq-driver-modes} opisuje
+wartości możliwe do zapisania w charakterystyce odpowiadającej trybowi pracy.
+Jest on kodowany na jednym bajcie i może przyjmować jedną z czterech wartości
+podanych w tabeli.
 
-Tabela \ref{tab:eq-driver-modes} opisuje wartości możliwe do zapisania
-w charakterystyce odpowiadającej trybowi pracy. Jest on kodowany na jednym
-bajcie i może przyjmować jedną z czterech wartości podanych w tabeli.
-
-\subsection{Obsługa nieprawidłowych wartości}
-
-Zapisanie nieprawidłowej wartości do charakterystyki trybu pracy nie powiedzie
-się i ta nie ulegnie zmianie.
+\paragraph{Obsługa nieprawidłowych wartości} Zapisanie nieprawidłowej wartości
+do charakterystyki trybu pracy nie powiedzie się i ta nie ulegnie zmianie.
 
 Zapisanie nieprawidłowej wartości pozycji spowoduje przekształcenie jej
-w wartość poprawną.
+w wartość poprawną za pomocą operacji modulo.
 
 \section{Implementacja}
+
+Biblioteka \emph{SoftDevice} implementuje stos protokołu Bluetooth low energy.
+Warstwa aplikacyjna odpowiedzialna jest za poprawne skonfigurowanie protokołu
+i obsługę zdarzeń związanych z komunikacją.
 
 \subsection{Inicjalizacja stosu Bluetooth}
 
 Za zainicjowanie BLE z odpowiednimi parametrami odpowiada funkcja
 \emph{ble\_init()}. Konfiguruje ona podsystem \emph{SoftDevice} i ustawia
-parametry rozgłaszania i połączeń.
+parametry rozgłaszania i nawiązywanych połączeń.
 
 Konfiguracja parametrów BLE znajduje się w pliku \emph{eq\_ble.h}.
 
@@ -200,9 +213,13 @@ oszczędzać energię
 
 \end{itemize}
 
-Aplikacja włącza kolejne tryby na określony czas badź do czasu nawiązania
+Aplikacja włącza kolejne tryby na określony czas bądź do czasu nawiązania
 połączenia. Jeśli żadne urządzenie nie zainicjuje połączenia w trybie szybkim,
-rozpocznie się rozgłaszanie z dłuższym interwałem obniżając zużycie energii.
+po skonfigurowanym czasie rozpocznie się rozgłaszanie z dłuższym interwałem
+obniżając zużycie energii, po czym aplikacja wejdzie w tryb uśpienia po
+przekroczeniu kolejnego ze skonfigurowanych czasów.
+
+W projektowanym systemie aktywny jest tylko tryb szybkiego rozgłaszania.
 
 \begin{table}[t]
 
@@ -245,8 +262,6 @@ danych. Po tym czasie połączenie jest uważane za utracone i urządzenie może
 próbować połączyć się z nim ponownie.
 
 \subsection{Obsługa zdarzeń protokołu GAP}
-
-TODO
 
 \subsection{Obsługa zdarzeń protokołu GATT}
 
