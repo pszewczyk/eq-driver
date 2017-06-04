@@ -4,6 +4,11 @@
 
 #define KEY1 16
 #define KEY2 17
+
+#define KEY_RAP 16
+#define KEY_RAM 17
+#define KEY_DECP 14
+#define KEY_DECM 15
  
 #define LED0 18
 #define LED1 19

@@ -93,6 +93,8 @@ struct context {
 
 	uint8_t direction[2]; /**< direction set to hardware, not exported */
 	int32_t goto_diff[2];
+	uint8_t button_ra[2];
+	uint8_t button_dec[2];
 	ble_gatts_char_handles_t char_handle[CHAR_NUMBER];
 } ctx;
 
@@ -321,8 +323,25 @@ static void sky_movement_timer_handler(void *p_context)
 {
 	switch (ctx.mode) {
 	case MODE_TRACKING:
-		/* direction was already set */
-		nrf_gpio_pin_toggle(RA_STEP);
+		if (ctx.button_ra[0] ^ ctx.button_ra[1]) {
+			if (ctx.button_ra[0]) {
+				/* FIXME: one step at a time but with higher frequency */
+				nrf_gpio_pin_toggle(RA_STEP);
+				nrf_gpio_pin_toggle(RA_STEP);
+			}
+		} else {
+			nrf_gpio_pin_toggle(RA_STEP);
+		}
+
+		if (ctx.button_dec[0] ^ ctx.button_dec[1]) {
+			if (ctx.button_ra[0])
+				dec_set_dir(DIR_PROGRADE);
+			else
+				dec_set_dir(DIR_RETROGRADE);
+
+			nrf_gpio_pin_toggle(DEC_STEP);
+		} 
+
 		break;
 	case MODE_GOTO:
 	case MODE_MANUAL:
@@ -530,14 +549,18 @@ static int services_init()
 
 void manual_button_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action)
 {
-	static int b1 = 0, b2 = 0;
-
 	switch (pin) {
-	case KEY1:
-		b1 = !b1;
+	case KEY_RAP:
+		ctx.button_ra[0] = !ctx.button_ra[0];
 		break;
-	case KEY2:
-		b2 = !b2;
+	case KEY_RAM:
+		ctx.button_ra[1] = !ctx.button_ra[1];
+		break;
+	case KEY_DECP:
+		ctx.button_dec[0] = !ctx.button_dec[0];
+		break;
+	case KEY_DECM:
+		ctx.button_dec[1] = !ctx.button_dec[1];
 		break;
 	default:
 		NRF_LOG_INFO("Unhandled button event on pin %d\n\r", pin);
@@ -546,16 +569,22 @@ void manual_button_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t actio
 
 	NRF_LOG_INFO("Button input pin %d action %d\n\r", pin, action);
 
-	if (b1 ^ b2) {
-		set_mode(MODE_MANUAL);
-		if (b1)
+	if (ctx.button_ra[0] ^ ctx.button_ra[1]) {
+		if (ctx.button_ra[0])
 			ra_set_dir(DIR_PROGRADE);
 		else
 			ra_set_dir(DIR_RETROGRADE);
-		nrf_gpio_pin_set(LED1);
 	} else {
-		nrf_gpio_pin_clear(LED1);
-		set_mode(MODE_TRACKING);
+		ra_set_dir(DIR_OFF);
+	}
+
+	if (ctx.button_dec[0] ^ ctx.button_dec[1]) {
+		if (ctx.button_dec[0])
+			ra_set_dir(DIR_PROGRADE);
+		else
+			ra_set_dir(DIR_RETROGRADE);
+	} else {
+		dec_set_dir(DIR_OFF);
 	}
 }
 
@@ -565,13 +594,19 @@ void buttons_init()
 
 	nrf_drv_gpiote_in_config_t config = GPIOTE_CONFIG_IN_SENSE_TOGGLE(1);
 	config.pull = NRF_GPIO_PIN_PULLUP;
-	ret = nrf_drv_gpiote_in_init(KEY1, &config, manual_button_handler);
+	ret = nrf_drv_gpiote_in_init(KEY_RAP, &config, manual_button_handler);
 	EQ_ERROR_CHECK(ret);
-	ret = nrf_drv_gpiote_in_init(KEY2, &config, manual_button_handler);
+	ret = nrf_drv_gpiote_in_init(KEY_RAM, &config, manual_button_handler);
+	EQ_ERROR_CHECK(ret);
+	ret = nrf_drv_gpiote_in_init(KEY_DECP, &config, manual_button_handler);
+	EQ_ERROR_CHECK(ret);
+	ret = nrf_drv_gpiote_in_init(KEY_DECM, &config, manual_button_handler);
 	EQ_ERROR_CHECK(ret);
 
-	nrf_drv_gpiote_in_event_enable(KEY1, true);
-	nrf_drv_gpiote_in_event_enable(KEY2, true);
+	nrf_drv_gpiote_in_event_enable(KEY_RAP, true);
+	nrf_drv_gpiote_in_event_enable(KEY_RAM, true);
+	nrf_drv_gpiote_in_event_enable(KEY_DECP, true);
+	nrf_drv_gpiote_in_event_enable(KEY_DECM, true);
 }
 
 int main(void)
