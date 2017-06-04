@@ -1,0 +1,339 @@
+Główną część systemu stanowi sterownik napędu teleskopu. Odpowiada on za
+sterowanie silnikami zamocowanymi do montażu i realizuje opisane w wymaganiach
+systemu tryby pracy. Dostarcza również protokół komunikacji oparty o Bluetooth
+Low Energy.
+
+\section{nRF51822}
+
+Sterownik korzysta modułu Core51822, opartego o układ nRF51822. Realizuje on
+zarówno logikę oraz komunikację z urządzeniami realizującymi interfejs
+użytkownika.
+
+Jednostkę obliczeniową modułu stanowi 32 bitowy ARM Cortex-M0.
+
+Radio 2.4GHz jest odpowiedzialne za komunikację w paśmie ISM od 2.4GHz do
+2.483GHz.  Pozwala to na implementację protokołów takich jak Bluetooth, ANT oraz
+innych korzystających z tego pasma.  
+
+Moduł wyposażony jest w interfejs SWD pozwalający na debugowanie kodu
+działającego na urządzeniu oraz wgrywanie nowego oprogramowania.
+
+\subsection{Zegary i liczniki}
+
+W układach z serii nRF51 wykorzystywane są dwa główne zegary: o niskiej
+częstotliwości (LFCLK) oraz o wysokiej częstotliwości (HFCLK). Zegar LFCLK
+pracuje z częstotliwością 32.768kHz, natomiast zegar HFCLK z częstotliwością
+16MHz.
+
+\subsection{SoftDevice}
+
+Warstwę abstrakcji między sprzętem a kodem aplikacji stanowi moduł programowy
+SoftDevice. Składa się on z zestawu bibliotek realizujących komunikację
+bezprzewodową i operacje wejścia/wyjścia. Jego głównym zadaniem w projekcie jest
+implementacja protokołu Bluetooth.
+
+\subsection{Mapa pamięci}
+
+Przestrzeń adresowa pamięci modułu dzieli się na bloki o różnym przeznaczeniu.
+
+Blok pamięci o najniższych adresach zawiera kod programu. W przypadku
+zastosowania oprogramowania SoftDevice w pamięci programu wydzielony jest osobny
+blok przeznaczony na kod tego podsystemu.
+
+Podobny podział występuje w pamięci RAM urządzenia. Rysunek TODO przedstawia
+podział pamięci.
+
+\subsection{BLE400}
+
+W procesie implementacji oprogramowania sterownika przydatna okazała się płytka
+deweloperska BLE400. Zbiera ona kilka istotnych w tworzeniu i testowaniu systemu
+elementów:
+
+\begin{itemize}
+
+\item Gniazdo na moduł Core51822 o odległości pinów 2mm.
+
+\item Gniazdo na baterię zasilającą moduł.
+
+\item Układ CP2102 realizujący komunikację między interfejsami szeregowymi USB
+i UART.
+
+\item Układ zasilania pozwalający na zasilanie podłączonego modułu przez USB.
+
+\item Zestaw diod LED i przycisków podłączonych do konkretnych pinów modułu.
+
+\end{itemize}
+
+\section{Pozostałe komponenty sprzętowe}
+
+Za generowanie impulsów sterujących silnikami odpowiadają dwa sterowniki A4988.
+
+\section{Projekt układu elektronicznego}
+
+\subsection{Wejścia i wyjścia}
+
+\begin{table}[h]
+
+\begin{tabularx}{\linewidth}{|l|l|X|}
+
+\hline Nazwa & Numer & Opis \\
+
+	\hline RA-DIR & 30 & Kierunek silnika osi rektascensji (osi kąta
+	godzinnego) \\
+
+	\hline RA-EN & 0 & Wyjście włączające / wyłączające silnik osi
+	rektascensji \\
+
+	\hline RA-STEP & 1 & Wyjście zegara sterującego silnikiem osi
+	rektascensji \\
+	
+	\hline RA-MS1 & 2 & Pierwszy bit wyboru trybu pracy sterownika silnika
+	osi rektascensji \\
+	
+	\hline RA-MS2 & 4 & Drugi bit wyboru trybu pracy sterownika silnika osi
+	rektascensji \\
+	
+	\hline RA-MS2 & 3 & Trzeci bit wyboru trybu pracy sterownika silnika osi
+	rektascensji \\
+	
+	\hline DEC-DIR & 9 & Kierunek silnika osi deklinacji \\
+
+	\hline DEC-EN & 10 & Wyjście włączające / wyłączające silnik osi
+	deklinacji \\
+
+	\hline DEC-STEP & 7 & Wyjście zegara sterującego silnikiem osi
+	deklinacji \\
+	
+	\hline DEC-MS1 & 8 & Pierwszy bit wyboru trybu pracy sterownika silnika
+	osi deklinacji \\
+	
+	\hline DEC-MS2 & 6 & Drugi bit wyboru trybu pracy sterownika silnika osi
+	 deklinacji\\
+	
+	\hline DEC-MS2 & 5 & Trzeci bit wyboru trybu pracy sterownika silnika
+	osi deklinacji \\
+	
+	\hline LED1 & 28 & Dioda LED oznaczająca tryb śledzenia\\
+	
+	\hline LED2 & 24 & Dioda LED oznaczająca tryb GoTo \\
+
+	\hline LED3 & 22 & Dioda LED oznaczająca tryb ręczny \\
+	
+	\hline RX & 17 & Pin RX portu szeregowego \\
+
+	\hline TX & 18 & Pin TX portu szeregowego \\ 
+
+	\hline CTS & 20 & Pin CTS portu szeregowego \\
+
+	\hline RTS  & 19 & Pin RTS portu szeregowego \\
+
+	\hline RA+ & 15 & Wejście sterujące w osi rektascensji w górę \\
+
+	\hline RA- & 13 & Wejście sterujące w osi rektascensji w dół \\
+
+	\hline DEC+ & 16 & Wejście sterujące w osi deklinacji w górę \\
+
+	\hline DEC- & 14 & Wejście sterujące w osi deklinacji w dół \\
+
+\hline \end{tabularx}
+
+\caption{Funkcje pinów Core51822}
+
+\label{tab:custom-pinout}
+
+\end{table}
+
+Do poszczególnych pinów modułu Core51822 przypisane są funkcje opisane w tabeli
+\ref{tab:custom-pinout}.
+
+\section{Architektura oprogramowania}
+
+\subsection{Diagram stanów}
+
+Na podstawie założeń dotyczących trybów pracy całego systemu opisanych
+w rozdziale \ref{cha:usecase} można wyróżnić odpowiadające im stany w jakich
+może znajdować się projektowany moduł sterownika:
+
+\begin{itemize}
+
+	\item Śledzenie - stan, w którym sterownik realizuje tryb śledzenia.
+		W tym stanie sterownik dokonuje poprawek zgodnie z ruchem nieba.
+
+	\item Stan GoTo, w którym sterownik realizuje zmianę wskazywanego przez
+		oś optyczną teleskopu położenia, co sprowadza się do
+		wygenerowania sygnału obracającego silniki montażu o ustalone
+		wartości przesunięć kątowych.
+
+	\item Stan sterowania ręcznego, w którym sterownik pozwala użytkownikowi
+		na ręczne zmiany przesunięć kątowych montażu. 
+
+	\item Sterownik wyłączony - stan, w którym sterownik nie steruje żadnym
+		silnikiem.
+
+\end{itemize}
+
+Możliwe są przejścia między każdą parą stanów. Dla zwiększenia czytelności można
+wprowadzić pomocniczy stan: \emph{konfiguracja trybu pracy}.  W rzeczywistości
+sterownik może znajdować się w takim stanie, ponieważ zmiana stanu logicznego
+nie jest natychmiastowa i wymaga zmiany konfiguracji sprzętu, co trwa pewną
+ilość czasu.
+
+\begin{figure}
+
+	\includegraphics[width=\linewidth]{state-diagram}
+
+	\caption{Diagram stanów sterownika teleskopu}
+	
+	\label{rys:state-diagram}
+
+\end{figure}
+
+Pomiędzy stanem GoTo a śledzeniem następuje automatyczne przejście, jeśli cel
+trybu GoTo zostanie osiągnięty. Pozostałe przejścia na diagramie stanów
+wymuszone są przez użytkownika.
+
+Rysunek \ref{rys:state-diagram} pokazuje diagram stanów sterownika.
+
+\section{Sterowanie silnikami}
+
+Wykorzystując udostępniony przez SDK interfejs liczników (\emph{app\_timer})
+sterownik generuje na wyjściach RA-STEP i DEC-STEP sygnały prostokątne, aby
+obracać silnikami z prędkością odpowiednią dla stanu, w jakim się znajduje. Te
+wyjścia podpięte są do wejść STEP modułów A4988.
+
+Zależnie od stanu wykorzystywane są różne liczniki. Program sterownika definiuje
+trzy liczniki:
+
+\begin{lstlisting}
+
+APP_TIMER_DEF(sky_movement_timer_id);
+APP_TIMER_DEF(goto_timer_id);
+APP_TIMER_DEF(manual_timer_id);
+
+\end{lstlisting}
+
+Licznik sky\_movement\_timer jest odpowiedzialny za śledzenie ruchu nieba
+i aktywny jest zawsze. Jeśli sterownik znajduje się w stanie innym niż śledzenie
+jest on używany do zmiany obecnego położenia o kąt przesunięcia nieba. W stanie
+śledzenia jest on wykorzystywany do generowania sygnału sterującego silnikami,
+aby położenie było zachowywane.
+
+
+
+
+
+
+
+
+\section{Protokół komunikacji}
+
+Biblioteka \emph{SoftDevice} implementuje stos protokołu Bluetooth low energy.
+Warstwa aplikacyjna odpowiedzialna jest za poprawne skonfigurowanie protokołu
+i obsługę zdarzeń związanych z komunikacją.
+
+\subsection{Inicjalizacja stosu Bluetooth}
+
+Za zainicjowanie BLE z odpowiednimi parametrami odpowiada funkcja
+\emph{ble\_init()}. Konfiguruje ona podsystem \emph{SoftDevice} i ustawia
+parametry rozgłaszania i nawiązywanych połączeń.
+
+Konfiguracja parametrów BLE znajduje się w pliku \emph{eq\_ble.h}.
+
+\begin{table}[t]
+
+\begin{tabularx}{\linewidth}{|l|X|l|}
+
+\hline Parametr & Opis & Wartość \\
+
+\hline ADV\_INCLUDE\_APPEARANCE & Flaga oznaczająca dołączenie charakterystyki
+\emph{appearance} & 0 \\
+
+\hline ADV\_FAST\_ENABLED & Umożliwienie trybu szybkiego rozgłaszania & 1 \\
+
+\hline ADV\_FAST\_INTERVAL & Interwał rozgłaszania w trybie szybkiego
+rozgłaszania & $32.5ms$ \\
+
+\hline ADV\_FAST\_TIMEOUT & Czas trwania trybu szybkiego rozgłaszania & $120s$
+\\
+
+\hline DEVICE\_NAME & Rozgłaszana nazwa urządzenia & ''EQ-Driver'' \\
+
+\hline \end{tabularx}
+
+\caption{Konfiguracja rozgłaszania}
+
+\label{tab:parametry-rozglaszania}
+
+\end{table}
+
+Parametry rozgłaszania opisuje \ref{tab:parametry-rozglaszania}.
+
+SoftDevice pozwala na konfigurację czterech różnych trybów rozgłaszania:
+
+\begin{itemize}
+
+\item Bezpośredni (Directed)- po rozłączeniu aplikacja próbuje połączyć się
+ponownie z urządzeniem, z którym utraciła połączenie
+
+\item Szybki (fast) - Aplikacja rozgłasza dane w krótkich interwałach
+
+\item Wolny (slow) - Aplikacja rozgłasza dane w długich interwałach aby
+oszczędzać energię
+
+\item Idle - Aplikacja nie rozgłasza danych
+
+\end{itemize}
+
+Aplikacja włącza kolejne tryby na określony czas bądź do czasu nawiązania
+połączenia. Jeśli żadne urządzenie nie zainicjuje połączenia w trybie szybkim,
+po skonfigurowanym czasie rozpocznie się rozgłaszanie z dłuższym interwałem
+obniżając zużycie energii, po czym aplikacja wejdzie w tryb uśpienia po
+przekroczeniu kolejnego ze skonfigurowanych czasów.
+
+W projektowanym systemie aktywny jest tylko tryb szybkiego rozgłaszania.
+
+\begin{table}[t]
+
+\begin{tabularx}{\linewidth}{|l|X|l|}
+
+\hline Parametr & Opis & Wartość \\
+
+\hline MIN\_CONN\_INTERVAL & Dolne ograniczenie czasu pomiędzy transmisjami
+danych & $125ms$ \\
+
+\hline MAX\_CONN\_INTERVAL & Górne ograniczenie czasu pomiędzy transmisjami
+danych & $250ms$ \\
+
+\hline SLAVE\_LATENCY & Liczba kolejnych żądań na które urządzenie może nie
+odpowiadać & 0 \\
+
+\hline CONN\_SUP\_TIMEOUT & Czas od ostatniego dostarczenia danych po którym
+połączenie jest uważane za utracone & $40s$ \\
+
+\hline \end{tabularx}
+
+\caption{Konfiguracja połączeń}
+
+\label{tab:parametry-polaczenia}
+
+\end{table}
+
+Po nawiązaniu połączenia urządzenie centralne będzie żądać od urządzenia
+peryferyjnego danych regularnie. Parametry MIN\_CONN\_INTERVAL
+i MAX\_CONN\_INTERVAL przekazywane są urządzeniu centralnemu i ustalają
+ograniczenie czasu pomiędzy kolejnymi żądaniami.
+
+Parametr SLAVE\_LATENCY umożliwia urządzeniu peryferyjnemu na nieodpowiadanie na
+żądania urządzenia centralnego $n$ razy, co pozwala mu na dłuższy okres
+bezczynności, kiedy nie ma nowych danych do wysłania. Ustawienie tej wartości na
+0 wyłącza tę funkcjonalność.
+
+Parametr CONN\_SUP\_TIMEOUT definiuje maksymalny czas od ostatniej transmisji
+danych. Po tym czasie połączenie jest uważane za utracone i urządzenie może
+próbować połączyć się z nim ponownie.
+
+\subsection{Obsługa zdarzeń protokołu GAP}
+
+\subsection{Obsługa zdarzeń protokołu GATT}
+
+\section{Testy sterownika}
