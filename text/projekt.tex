@@ -6,17 +6,28 @@ Low Energy.
 \section{nRF51822}
 
 Sterownik korzysta modułu Core51822, opartego o układ nRF51822. Realizuje on
-zarówno logikę oraz komunikację z urządzeniami realizującymi interfejs
-użytkownika.
+zarówno logikę oraz komunikację z urządzeniami tworzącymi interfejs użytkownika.
 
-Jednostkę obliczeniową modułu stanowi 32 bitowy ARM Cortex-M0.
+W skład modułu wchodzą:
 
-Radio 2.4GHz jest odpowiedzialne za komunikację w paśmie ISM od 2.4GHz do
-2.483GHz.  Pozwala to na implementację protokołów takich jak Bluetooth, ANT oraz
-innych korzystających z tego pasma.  
+\begin{itemize}
 
-Moduł wyposażony jest w interfejs SWD pozwalający na debugowanie kodu
-działającego na urządzeniu oraz wgrywanie nowego oprogramowania.
+	\item 32 bitowy procesor ARM Cortex-M0.
+
+	\item Pamięć flash o pojemności 256kB.
+
+	\item Pamięć RAM o pojemności 32kB.
+
+	\item Interfejs SWD pozwalający na debugowanie programu działającego na
+		urządzeniu oraz jego aktualizację.
+
+	\item Antena z modułem radiowym pracującym w paśmie ISM od 2.4GHz do
+2.483GHz pozwalającym na implementację popularnych protokołów komunikacji takich
+		jak Bluetooth.
+
+	\item 29 pinów GPIO
+
+\end{itemize}
 
 \subsection{Zegary i liczniki}
 
@@ -25,12 +36,36 @@ częstotliwości (LFCLK) oraz o wysokiej częstotliwości (HFCLK). Zegar LFCLK
 pracuje z częstotliwością 32.768kHz, natomiast zegar HFCLK z częstotliwością
 16MHz.
 
+Moduł nRF51822 udostępnia licznik count-up (zliczający w górę) korzystający
+z zegara HFCLK. Dodatkowa warstwa abstrakcji dostarczona w bibliotekach SDK
+umożliwia użycie wielu abstrakcyjnych liczników o różnych częstotliwościach.
+
 \subsection{SoftDevice}
 
 Warstwę abstrakcji między sprzętem a kodem aplikacji stanowi moduł programowy
 SoftDevice. Składa się on z zestawu bibliotek realizujących komunikację
 bezprzewodową i operacje wejścia/wyjścia. Jego głównym zadaniem w projekcie jest
 implementacja protokołu Bluetooth.
+
+Biblioteki dostarczone przez SoftDevice są prekompilowane i udostępniają
+interfejs dla kodu aplikacji.
+
+SoftDevice składa się z trzech kompontentów. Są to:
+
+\begin{itemize}
+
+	\item Biblioteka SoC udostępniająca interfejs programowy dla aplikacji.
+
+	\item Menadżer SoftDevice będący interfejsem pozwalającym na
+		konfigurację samego modułu SoftDevice, w tym włączanie
+		i wyłączanie go.
+
+	\item Stos protokołów - implementacja protokołów wspieranych przez
+		SoftDevice.
+
+\end{itemize}
+
+W projekcie użyta została wersja S130 v2.0.1 dostarczona z SDK w wersji v12.2.0.
 
 \subsection{Mapa pamięci}
 
@@ -40,8 +75,11 @@ Blok pamięci o najniższych adresach zawiera kod programu. W przypadku
 zastosowania oprogramowania SoftDevice w pamięci programu wydzielony jest osobny
 blok przeznaczony na kod tego podsystemu.
 
-Podobny podział występuje w pamięci RAM urządzenia. Rysunek TODO przedstawia
-podział pamięci.
+Podobny podział występuje w pamięci RAM urządzenia. Rysunek \ref{rys:memory-map}
+przedstawia podział pamięci.
+
+Przedstawiony podział pamięci modułu wykorzystuje skrypt linkera używany przy
+budowaniu całości oprogramowania sterownika.
 
 \subsection{BLE400}
 
@@ -218,12 +256,59 @@ jest on używany do zmiany obecnego położenia o kąt przesunięcia nieba. W st
 śledzenia jest on wykorzystywany do generowania sygnału sterującego silnikami,
 aby położenie było zachowywane.
 
+Pozostałe dwa liczniki aktywne są tylko w odpowiadających sobie trybach pracy.
 
+Liczniki generują przerwania obsługiwane przez odpowiadające różnym trybom pracy
+funkcje:
 
+\begin{lstlisting}
 
+static void sky_movement_timer_handler(void *p_context);
+static void manual_timer_handler(void *p_context);
+static void goto_timer_handler(void *p_context);
 
+\end{lstlisting}
 
+\section{Wsparcie dla zewnętrznych systemów śledzenia}
 
+Dostępne na rynku systemy wspierające śledzenie ruchu sfery niebieskiej opierają
+się na różnych standardach. Jednym z popularnych, jednak nieoficjalnych
+standardów jest ST-4. Jest on wspierany przez projektowany system.
+
+\begin{table}[h]
+
+\begin{tabularx}{\linewidth}{|l|X|}
+
+\hline Numer & Opis \\
+	
+	\hline 1 & Nieużywany \\
+	
+	\hline 2 & Masa \\
+
+	\hline 3 & RA+ - zwiększenie rektascensji \\
+
+	\hline 4 & DEC+ - zwiększenie deklinacji \\
+
+	\hline 5 & DEC- - zmniejszenie deklinacji \\
+
+	\hline 6 & RA- - Zmniejszenie rektascensji \\
+
+\hline \end{tabularx}
+
+\caption{Opis pinów gniazda ST-4}
+
+\label{tab:st4-pinout}
+
+\end{table}
+
+W trybie śledzenia sterownik używa wejść RA+, RA-, DEC+ i DEC- do korekcji
+pozycji montażu. Te wejścia są też wyprowadzone w postaci gniazda RJ12, o które
+oparty jest standard ST-4. Tabela \ref{tab:st4-pinout} opisuje kolejne piny
+gniazda.
+
+\section{Port szeregowy}
+
+%TODO
 
 \section{Protokół komunikacji}
 
