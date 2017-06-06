@@ -233,9 +233,9 @@ static void set_mode(int mode)
 		nrf_gpio_pin_set(RA_MS2);
 		nrf_gpio_pin_set(RA_MS3);
 
-		/* disable DEC motor, enable RA */
+		/* DEC axis is enabled for guiding support */
 		nrf_gpio_pin_clear(RA_EN);
-		nrf_gpio_pin_set(DEC_EN);
+		nrf_gpio_pin_clear(DEC_EN);
 
 		ra_set_dir(DIR_PROGRADE);
 		dec_set_dir(DIR_OFF);
